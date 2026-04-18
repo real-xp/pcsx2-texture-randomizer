@@ -23,6 +23,13 @@ extension_file_array = {}
 
 # this function does exactly that
 def get_file_list():
+    # filter files
+    try:
+        with open("./filter.txt", 'r') as filter_file:
+            filter_file_list = [line.strip() for line in filter_file]
+    except:
+        print("\n---\tFilter File Could Not Be Loaded!\t---\n")
+        
     for file in file_list: # for loop to loop through files
         try:
             file_name, extension = os.path.splitext(file) # splits filename and extension
@@ -30,12 +37,13 @@ def get_file_list():
             print("\n---\tError Detecting Files!\t---\n")
             continue
 
-        if (extension != ''): # checks if somehow extension does not exist
-            if (extension_file_array.get(extension) != None): # checks if there is an existing key value entry in dictionary
-                temp_list_array = extension_file_array[extension] # gets the list of files of that particular extension type
-                temp_list_array.append(file_name) # adds current iteration file name into that list
-            else:
-                extension_file_array.update({extension : [file_name]}) # makes a new key value pair and adds it to dict
+        if (file_name not in filter_file_list):
+            if (extension != ''): # checks if somehow extension does not exist
+                if (extension_file_array.get(extension) != None): # checks if there is an existing key value entry in dictionary
+                    temp_list_array = extension_file_array[extension] # gets the list of files of that particular extension type
+                    temp_list_array.append(file_name) # adds current iteration file name into that list
+                else:
+                    extension_file_array.update({extension : [file_name]}) # makes a new key value pair and adds it to dict
 
 # checks validity of path, -1 = error, 0 = passed check
 def check_path_validity():
@@ -82,6 +90,7 @@ def log_txt(seed_file):
     log_file = open("./seeds.txt", "a")
     log_file.write(f"{TIMESTAMP} -> {seed_file}\n")
     log_file.close()
+
 
 # ---
 # Main Function
