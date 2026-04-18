@@ -47,3 +47,8 @@ To use this script, follow the steps
     - Go to `Settings > Grahpics > Texture Replacements > Load Textures`
     - When you boot the game, you should see randomised textures
 - To rerun the script or rerandomise the content, move the textures back to `dumps` folder and follow the steps again
+
+## Log File
+A log file can also be generated when the textures are replaced, with a timestamp of when the script ran.
+This log can help recognise problematic textures. 
+It can be enabled by changing the `LOG` variable from `false` to `true` 

@@ -12,6 +12,7 @@ TIMESTAMP = datetime.datetime.now(datetime.timezone.utc)
 SEED = "" # PUT YOUR SEED HERE, wait that sounds wrong, i mean PUT THE SEED FOR THE RANDOMISER HERE
 SOURCE_PATH = "./textures/" # This is the path for source textures
 FINAL_PATH = "./replacements/" # this is the path where all textures will be moved
+LOG = False # set True or False if you want log.txt file generated
 
 # testing if filelist can even be detected
 try:
@@ -81,7 +82,9 @@ def rename_spec_ext():
 
                     log_text = f"Renaming {original_file_path} to {renamed_file_path}"
                     print (log_text)
-                    log_text_write(log_text)
+                    if (LOG):
+                        log_txt_initialize()
+                        log_text_write(log_text)
                     os.rename(original_file_path, renamed_file_path)
                 except:
                     print("\n---\tError Renaming And Moving File From Source To Final Path\t---\n")
@@ -115,7 +118,6 @@ def main():
         seed_txt(str(TIMESTAMP.timestamp()))
 
     if (check_path_validity() == 0):
-        log_txt_initialize()
         get_file_list()
         rename_spec_ext()
     else:
