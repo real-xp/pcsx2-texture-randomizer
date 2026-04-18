@@ -26,6 +26,8 @@ To use this script, follow the steps
 - Search for `FINAL_PATH` and put the path of the replacements folder between ""
     - So in this case, something like `"C:\Users\XP\Documents\PCSX2\textures\SLUS-20967\replacements"`
     - **NOTE** - Make sure to change the `\` in between the path to the `/`, so it would look like `"C:/Users/XP/Documents/PCSX2/textures/SLUS-20967/replacemements"`
+
+## Seeds
 - To change the seed for the randomiser, you have two options
     - The default seed, if left empty will be based on the timestamp of the system
     - You can set a custom seed by searching for `SEED` in the code, and in between "", putting the seed
@@ -33,6 +35,13 @@ To use this script, follow the steps
 - After everything is double checked, run the script using python
     - You can do that by right clicking the `main.py` file, open with `python` and it should run the script
     - You can also open command line and run `python main.py`
+
+## Filter List
+- To add exception / filter for text textures, just include the `filter.txt` file in the code
+- Make sure the file names in the `filter.txt` is separated by new lines
+- Delete all the extension from the files, like `.bmp` or `.dds` for the script to work
+
+## PCSX2 Setup
 - After the script is finished, it should move the textures from the `dumps` folder to the `replacements` folder
 - To see the changes, in PCSX2
     - Go to `Settings > Grahpics > Texture Replacements > Load Textures`
