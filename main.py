@@ -1,0 +1,103 @@
+'''
+XP's Texture Randomiser Script
+'''
+
+import os
+import random
+import datetime
+
+# variables global
+
+TIMESTAMP = datetime.datetime.now(datetime.timezone.utc)
+SEED = "" # PUT YOUR SEED HERE, wait that sounds wrong, i mean PUT THE SEED FOR THE RANDOMISER HERE
+SOURCE_PATH = "./textures/" # This is the path for source textures
+FINAL_PATH = "./replacements/" # this is the path where all textures will be moved
+
+# testing if filelist can even be detected
+try:
+    file_list = os.listdir(path=SOURCE_PATH)
+except:
+    print("\n---\tError Detecting Files\t---\n")
+
+extension_file_array = {}
+
+# this function does exactly that
+def get_file_list():
+    for file in file_list: # for loop to loop through files
+        try:
+            file_name, extension = os.path.splitext(file) # splits filename and extension
+        except:
+            print("\n---\tError Detecting Files!\t---\n")
+            continue
+
+        if (extension != ''): # checks if somehow extension does not exist
+            if (extension_file_array.get(extension) != None): # checks if there is an existing key value entry in dictionary
+                temp_list_array = extension_file_array[extension] # gets the list of files of that particular extension type
+                temp_list_array.append(file_name) # adds current iteration file name into that list
+            else:
+                extension_file_array.update({extension : [file_name]}) # makes a new key value pair and adds it to dict
+
+# checks validity of path, -1 = error, 0 = passed check
+def check_path_validity():
+    if (os.path.exists(SOURCE_PATH)):
+        print("\n---\tSource Path Valid\t---\n")
+        if (os.path.exists(FINAL_PATH)):
+            print("\n---\tFinal Path Valid\t---\n")
+            return 0
+        else:
+            print("\n---\tFinal Path Invalid. Making New Folder Based On Path\t---\n")
+            try:
+                os.mkdir(FINAL_PATH)
+                return 0
+            except:
+                print("\n---\tError Making Folder For Final Path\t---\n")
+                return -1
+    else:
+        print("\n---\tSource Path INVALID\t---\n")
+        return -1
+
+# rename files of specific extension
+def rename_spec_ext():
+    if (not extension_file_array):
+        print("\n---\tFile Replacements Not Possible. No Files Detected!\t---\n")
+    else:
+        for extension, value_list in extension_file_array.items(): # loop through list, giving extension, value of extension in dict
+            randomised_list = value_list.copy() # copy into randomised list
+            random.shuffle(randomised_list) # shuffles
+
+            for index, file_name in enumerate(value_list):
+                try:
+                    original_file_path = os.path.join(SOURCE_PATH, file_name+extension)
+                    # renamed_file_path = os.path.join(FINAL_PATH, file_name+" to "+randomised_list[index]+extension) TEST 
+                    renamed_file_path = os.path.join(FINAL_PATH, randomised_list[index]+extension)
+
+                    print (f"Renaming {original_file_path} to {renamed_file_path}")
+                    os.rename(original_file_path, renamed_file_path)
+                except:
+                    print("\n---\tError Renaming And Moving File From Source To Final Path\t---\n")
+        print("\n---\tFile Replacements Done!\t---\n")
+
+# crypto miner, jk, this just notes the seeds in the seeds.txt file with timestamps
+def log_txt(seed_file):
+    log_file = open("./seeds.txt", "a")
+    log_file.write(f"{TIMESTAMP} -> {seed_file}\n")
+    log_file.close()
+
+# ---
+# Main Function
+def main():
+
+    if (SEED != ''):
+        random.seed(SEED)
+        log_txt(SEED)
+    else:
+        random.seed(str(TIMESTAMP.timestamp()))
+        log_txt(str(TIMESTAMP.timestamp()))
+
+    if (check_path_validity() == 0):
+        get_file_list()
+        rename_spec_ext()
+    else:
+        print("\n---\tExiting Program!\t---\n")
+
+main()
