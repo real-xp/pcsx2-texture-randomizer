@@ -29,7 +29,7 @@ def get_file_list():
             filter_file_list = [line.strip() for line in filter_file]
     except:
         print("\n---\tFilter File Could Not Be Loaded!\t---\n")
-        
+
     for file in file_list: # for loop to loop through files
         try:
             file_name, extension = os.path.splitext(file) # splits filename and extension
@@ -79,18 +79,29 @@ def rename_spec_ext():
                     # renamed_file_path = os.path.join(FINAL_PATH, file_name+" to "+randomised_list[index]+extension) TEST 
                     renamed_file_path = os.path.join(FINAL_PATH, randomised_list[index]+extension)
 
-                    print (f"Renaming {original_file_path} to {renamed_file_path}")
+                    log_text = f"Renaming {original_file_path} to {renamed_file_path}"
+                    print (log_text)
+                    log_text_write(log_text)
                     os.rename(original_file_path, renamed_file_path)
                 except:
                     print("\n---\tError Renaming And Moving File From Source To Final Path\t---\n")
         print("\n---\tFile Replacements Done!\t---\n")
 
 # crypto miner, jk, this just notes the seeds in the seeds.txt file with timestamps
-def log_txt(seed_file):
-    log_file = open("./seeds.txt", "a")
-    log_file.write(f"{TIMESTAMP} -> {seed_file}\n")
+def seed_txt(seed_file):
+    seed_file = open("./seeds.txt", "a")
+    seed_file.write(f"{TIMESTAMP} -> {seed_file}\n")
+    seed_file.close()
+
+def log_txt_initialize():
+    log_file = open("./log.txt", "a")
+    log_file.write(f"\n------{TIMESTAMP}------\n\n")
     log_file.close()
 
+def log_text_write(string_file):
+    log_file = open("./log.txt", "a")
+    log_file.write(f"{string_file}\n")
+    log_file.close()
 
 # ---
 # Main Function
@@ -98,12 +109,13 @@ def main():
 
     if (SEED != ''):
         random.seed(SEED)
-        log_txt(SEED)
+        seed_txt(SEED)
     else:
         random.seed(str(TIMESTAMP.timestamp()))
-        log_txt(str(TIMESTAMP.timestamp()))
+        seed_txt(str(TIMESTAMP.timestamp()))
 
     if (check_path_validity() == 0):
+        log_txt_initialize()
         get_file_list()
         rename_spec_ext()
     else:
