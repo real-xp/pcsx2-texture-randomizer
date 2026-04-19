@@ -7,10 +7,11 @@ import random
 import datetime
 import tkinter as tk
 from tkinter import ttk
-from tkinter import scrolledtext
 from tkinter import filedialog
 from tkinter.messagebox import showerror, showinfo, showwarning
 import webbrowser
+import json
+import subprocess
 
 # variables global
 
@@ -108,12 +109,14 @@ def rename_spec_ext():
                     # progress bar
                     current_progress = (index / value_list_size)
                     progress_bar['value'] = current_progress
-                    progress_bar_var.set(f"{current_progress*100}% - {index} / {value_list_size}")
+                    progress_bar_var.set(f"{current_progress*100}% - {index+1} / {value_list_size}")
 
                     print (log_text)
                     if (LOG):
-                        log_txt_initialize()
-                        log_text_write(log_text)
+                        is_first_time = False
+                        if (index == 0):
+                            is_first_time = True
+                        log_file(is_first_time, log_text)
                     os.rename(original_file_path, renamed_file_path)
                 except:
                     print("\n---\tError Renaming And Moving File From Source To Final Path\t---\n")
@@ -125,21 +128,50 @@ def rename_spec_ext():
         showinfo(title="Successful", message="Files were successfully randomised")
         reset_variables()
 
+def make_config_file(data):
+    try:   
+        with open("./config.json", 'w') as config_file:
+            json.dump(data, config_file)
+    except FileNotFoundError:
+        print("Error: The file 'config.json' was not found.")
+    except json.JSONDecodeError:
+        print("Error: Failed to decode JSON from the file.")
+
+def read_config_file():
+    try:   
+        with open("./config.json", 'r') as config_file:
+            return json.load(config_file)
+    except FileNotFoundError:
+        print("Error: The file 'config.json' was not found.")
+        return {}
+    except json.JSONDecodeError:
+        print("Error: Failed to decode JSON from the file.")
+        return {}
+
+def set_config_variables(config_data):
+    global SOURCE_PATH, FINAL_PATH, SEED, LOG, CONFIG
+    SOURCE_PATH = source_text.set(config_data["source_path"])
+    FINAL_PATH = target_text.set(config_data["final_path"])
+    SEED = seed_text.set(config_data["seed"])
+    LOG = make_log_bool.set(config_data["make_log_file"])
+    CONFIG = save_config_bool.set(config_data["make_config_file"])
+
 # crypto miner, jk, this just notes the seeds in the seeds.txt file with timestamps
-def seed_txt(seed_file):
-    seed_file = open("./seeds.txt", "a")
-    seed_file.write(f"{TIMESTAMP} -> {seed_file}\n")
-    seed_file.close()
+def seed_txt(seed):
+    try:   
+        with open("./seeds.txt", 'a') as seeds_file:
+            seeds_file.write(f"{TIMESTAMP} -> {seed}\n")
+    except FileNotFoundError:
+        print("Error: The file 'seeds.json' was not found.")
 
-def log_txt_initialize():
-    log_file = open("./log.txt", "a")
-    log_file.write(f"\n------{TIMESTAMP}------\n\n")
-    log_file.close()
-
-def log_text_write(string_file):
-    log_file = open("./log.txt", "a")
-    log_file.write(f"{string_file}\n")
-    log_file.close()
+def log_file(first_time, string_file):
+    try:   
+        with open("./log.log", 'a') as log_file:
+            if (first_time):
+                log_file.write(f"\n------{TIMESTAMP}------\n\n")
+            log_file.write(f"{string_file}\n")
+    except FileNotFoundError:
+        print("Error: The file 'log.log' was not found.")
 
 def reset_variables():
     global SOURCE_PATH, FINAL_PATH, SEED, file_list
@@ -150,6 +182,9 @@ def reset_variables():
 
 # ---
 # TKINTER WINDOW
+
+def choose_random_seed():
+    seed_text.set(str(random.randint(0, pow(2, 32))))
 
 def refresh_progress_window():
     log_window.update()
@@ -191,24 +226,16 @@ def dialog_box_button_action(action):
             target_text.set(dialog_path)
 
 def note_tkinter_window(type_of_action):
-    note_window = tk.Toplevel(root)
-    note_window.title(f"{type_of_action} Window")
-    note_window.geometry("450x450")
-    note_window.resizable(0,0)
-
-    scroll_text_box = scrolledtext.ScrolledText(note_window, font=DEFAULT_FONT_NOTEPAD)
-    scroll_text_box.pack(fill="both")
-
-    button_frame_note_window = ttk.Frame(note_window)
-    button_frame_note_window.pack(fill="x")
-    button_frame_note_window.columnconfigure(index=(0,1), weight=1)
-
-    clear_button = ttk.Button(button_frame_note_window, text="Clear", style="Save.TButton")
-    clear_button.grid(row=0, column=0, ipady=5, sticky="EW")
-    save_button = ttk.Button(button_frame_note_window, text="Save", style="Save.TButton")
-    save_button.grid(row=0, column=1, ipady=5, sticky="EW")
-
-def pressed_ranomise_button():
+    if (type_of_action == "LOG"):
+        subprocess.run(["notepad","./log.log"])
+    elif (type_of_action == "SEED"):
+        subprocess.run(["notepad","./seeds.txt"])
+    elif (type_of_action == "FILTER"):
+        subprocess.run(["notepad","./filter.txt"])
+    else:
+        showerror(title="Error", message="Some Kind Of Error Occured")
+        
+def pressed_ranomise_button(config_data):
     print("Pressed")
     # Multiple Checks
     if (source_text.get() != ""):
@@ -232,13 +259,26 @@ def pressed_ranomise_button():
                     print("\n---\tError Detecting Files\t---\n")
                     showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
 
+                # saving configuration
+                if (CONFIG):
+                    config_data = {
+                        "source_path" : SOURCE_PATH,
+                        "final_path": FINAL_PATH,
+                        "seed": SEED,
+                        "make_log_file": LOG,
+                        "make_config_file": CONFIG,
+                    }
+                    make_config_file(config_data)
+
+
                 if (file_list != []):
                     if (SEED != ''):
                         random.seed(SEED)
                         seed_txt(SEED)
                     else:
-                        random.seed(str(TIMESTAMP.timestamp()))
-                        seed_txt(str(TIMESTAMP.timestamp()))
+                        temp_rand_seed = str(random.randint(0, pow(2, 32)))
+                        random.seed(temp_rand_seed)
+                        seed_txt(temp_rand_seed)
 
                     if (check_path_validity() == 0):
                         get_file_list()
@@ -256,6 +296,7 @@ def pressed_ranomise_button():
 
 def main():
     global root
+
     root = tk.Tk()
     root.title("PCSX2 Texture Randomiser")
     root.geometry("900x450")
@@ -286,6 +327,10 @@ def main():
     save_config_bool = tk.BooleanVar()
     progress_bar_var = tk.StringVar()
 
+    config_data = read_config_file()
+    if (config_data != {}):
+        set_config_variables(config_data=config_data)   
+
     # topbar
     title_label = ttk.Label(root, text="PCSX2 Texture Randomiser", font=("Helvetica", 22, "bold"))
     title_label.grid(row=0, column=0, columnspan=2, padx=20, pady=30, sticky='EW')
@@ -312,7 +357,7 @@ def main():
     seed_input_label.grid(row=4, column=0, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, sticky='w')
     seed_input = ttk.Entry(root, font=DEFAULT_FONT, textvariable=seed_text)
     seed_input.grid(row=4, column=1, columnspan=1, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, sticky=DEFAULT_STICKY)
-    seed_validate = ttk.Button(root, image=random_icon, text="Random", compound=tk.LEFT)
+    seed_validate = ttk.Button(root, image=random_icon, text="Random", compound=tk.LEFT, command=choose_random_seed)
     seed_validate.grid(row=4, column=2, columnspan=3, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, sticky=DEFAULT_STICKY)
 
     ttk.Separator(root, orient=tk.HORIZONTAL).grid(row=5, column=0, columnspan=5, pady=10, sticky=DEFAULT_STICKY)
@@ -328,11 +373,11 @@ def main():
     button_frame_right.grid(row=0, column=2, columnspan=2, sticky=DEFAULT_STICKY)
 
     # buttons
-    seed_file_button = ttk.Button(button_frame_left, text="Seed History", command=lambda:note_tkinter_window("Seed"))
+    seed_file_button = ttk.Button(button_frame_left, text="Seed History", command=lambda:note_tkinter_window("SEED"))
     seed_file_button.grid(row=0, column=0, columnspan=1, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, sticky=DEFAULT_STICKY)
-    filter_file_button = ttk.Button(button_frame_left, text="Filter File", command=lambda:note_tkinter_window("Filter"))
+    filter_file_button = ttk.Button(button_frame_left, text="Filter File", command=lambda:note_tkinter_window("FILTER"))
     filter_file_button.grid(row=0, column=1, columnspan=1, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, sticky=DEFAULT_STICKY)
-    log_file_button = ttk.Button(button_frame_left, text="Log", command=lambda:note_tkinter_window("Log"))
+    log_file_button = ttk.Button(button_frame_left, text="Log", command=lambda:note_tkinter_window("LOG"))
     log_file_button.grid(row=0, column=2, columnspan=1, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, sticky=DEFAULT_STICKY)
 
     # checkbox
@@ -341,7 +386,7 @@ def main():
     save_settings_checkbox = ttk.Checkbutton(button_frame_right, text="Save Configuration", variable=save_config_bool)
     save_settings_checkbox.grid(row=0, column=1, columnspan=1, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, sticky=DEFAULT_STICKY)
 
-    target_button = ttk.Button(root, text="RANDOMISE TEXTURES", style="Export.TButton", image=export_icon, compound=tk.LEFT, command=lambda:pressed_ranomise_button())
+    target_button = ttk.Button(root, text="RANDOMISE TEXTURES", style="Export.TButton", image=export_icon, compound=tk.LEFT, command=lambda:pressed_ranomise_button(config_data = config_data))
     target_button.grid(row=7, column=0, columnspan=5, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, ipadx=25, ipady=10, sticky=DEFAULT_STICKY)
 
     root.mainloop()
