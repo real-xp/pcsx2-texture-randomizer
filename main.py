@@ -356,14 +356,6 @@ def main():
     # defining column weight
     root.columnconfigure(index=1, weight=5)
 
-    # importing icons for buttons
-    # TODO: Remove this, add base64 function later
-    github_icon = tk.PhotoImage(file='./assets/github.png')
-    folder_icon = tk.PhotoImage(file='./assets/folder.png')
-    random_icon = tk.PhotoImage(file='./assets/random.png')
-    export_icon = tk.PhotoImage(file='./assets/export.png')
-
-
     # VARIABLES
     global source_text, target_text, seed_text, make_log_bool, save_config_bool, progress_bar_var
 
@@ -380,22 +372,22 @@ def main():
 
     # Top Bar
     title_label = ttk.Label(root, text="PCSX2 Texture Randomizer", font=("Helvetica", 22, "bold"))
-    about_button = ttk.Button(root, image=github_icon, command=open_github_button_action)
+    about_button = ttk.Button(root, text="GitHub Page", command=open_github_button_action)
 
     ttk.Separator(root, orient=tk.HORIZONTAL).grid(row=1, column=0, columnspan=5, pady=(0, 20), sticky=DEFAULT_STICKY)
 
     # Mid level
     source_input_label = ttk.Label(root, text="Source Path")
     source_input = ttk.Entry(root, font=DEFAULT_FONT, textvariable=source_text)
-    source_dialogue = ttk.Button(root, image=folder_icon, text="Choose", compound=tk.LEFT, command=lambda: dialog_box_button_action(action="Source"))
+    source_dialogue = ttk.Button(root, text="Choose", compound=tk.LEFT, command=lambda: dialog_box_button_action(action="Source"))
 
     target_input_label = ttk.Label(root, text="Target Path")
     target_input = ttk.Entry(root, font=DEFAULT_FONT, textvariable=target_text)
-    target_dialogue = ttk.Button(root, image=folder_icon, text="Choose", compound=tk.LEFT, command=lambda: dialog_box_button_action(action="Target"))
+    target_dialogue = ttk.Button(root, text="Choose", compound=tk.LEFT, command=lambda: dialog_box_button_action(action="Target"))
 
     seed_input_label = ttk.Label(root, text="Seed")
     seed_input = ttk.Entry(root, font=DEFAULT_FONT, textvariable=seed_text)
-    seed_validate = ttk.Button(root, image=random_icon, text="Random", compound=tk.LEFT, command=lambda: seed_text.set(str(random.randint(0, pow(2, 32)))))
+    seed_validate = ttk.Button(root, text="Random", compound=tk.LEFT, command=lambda: seed_text.set(str(random.randint(0, pow(2, 32)))))
 
     ttk.Separator(root, orient=tk.HORIZONTAL).grid(row=5, column=0, columnspan=5, pady=10, sticky=DEFAULT_STICKY)
 
@@ -415,7 +407,7 @@ def main():
     save_settings_checkbox = ttk.Checkbutton(button_frame_right, text="Save Configuration", variable=save_config_bool)
 
     # Target Button
-    target_button = ttk.Button(root, text="RANDOMIZE TEXTURES", style="Export.TButton", image=export_icon, compound=tk.LEFT, command=lambda:pressed_ranomise_button(config_data = config_data))
+    target_button = ttk.Button(root, text="RANDOMIZE TEXTURES", style="Export.TButton", compound=tk.LEFT, command=lambda:pressed_ranomise_button(config_data = config_data))
 
     # PLACING ALL ELEMENTS DOWN
    
