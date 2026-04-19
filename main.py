@@ -48,12 +48,11 @@ def get_file_list():
 
     try:
         with open("./filter.txt", 'r') as filter_file:
-            # filter_file_list = [line.strip() for line in filter_file]               # parses lines from filter.txt to the array
-            for line in filter_file:
-                print(line)
-                line.strip()
+            # filter_file_list = [line.strip() for line in filter_file]               
+            for line in filter_file:                                                # parses lines from filter.txt to the array
+                line.strip()                                                        # removes newline character
                 if (line.find(".") != -1):
-                    filter_file_list.append(line.rsplit('.', 1)[0])
+                    filter_file_list.append(line.rsplit('.', 1)[0])                 # removes the extension
     except:
         showwarning(title="Filter List", message="Filter List Not Found", detail="Filter List was not found or does not exist.")
 
@@ -61,9 +60,9 @@ def get_file_list():
         try:
             file_name, extension = os.path.splitext(file)                           # splits filename and extension
 
-            file_is_in_filter = False
+            file_is_in_filter = False                                               # filter bool
 
-            for filter_element in filter_file_list:
+            for filter_element in filter_file_list:                                 # checks if filename is in filter
                 if filter_element in file_name:
                     file_is_in_filter = True
                     break
@@ -82,22 +81,17 @@ def get_file_list():
 # checks validity of path, -1 = error, 0 = passed check
 def check_path_validity():
     if (os.path.exists(SOURCE_PATH)):
-        # print("\n---\tSource Path Valid\t---\n")
         if (os.path.exists(FINAL_PATH)):
-            # print("\n---\tFinal Path Valid\t---\n")
             return 0
         else:
-            # print("\n---\tFinal Path Invalid. Making New Folder Based On Path\t---\n")
             showinfo(title="Target Folder", message="Target Folder Not Found", detail="A new target folder will be made.")
             try:
                 os.mkdir(FINAL_PATH)
                 return 0
             except:
-                # print("\n---\tError Making Folder For Final Path\t---\n")
                 showerror(title="Target Folder", message="Target Folder Could Not Be Made")
                 return -1
     else:
-        # print("\n---\tSource Path INVALID\t---\n")
         showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
         return -1
 
@@ -107,7 +101,6 @@ def rename_spec_ext():
     value_list_size = 0
 
     if (not extension_file_array):
-        # print("\n---\tFile Replacements Not Possible. No Files Detected!\t---\n")
         showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
     else:
         progress_log_window()
@@ -116,21 +109,12 @@ def rename_spec_ext():
             random.shuffle(randomised_list)                         # shuffles
             value_list_size = len(value_list)
 
-
             for index, file_name in enumerate(value_list):          # goes through shuffled list
                 try:
-                    final_file_name = randomised_list[index].rsplit('/', 1)[1]
-
-                    # print(SOURCE_PATH)
-                    # print(FINAL_PATH)
-                    # print(file_name)
-                    # print(final_file_name)
+                    final_file_name = randomised_list[index].rsplit('/', 1)[1]                              # makes final file name
 
                     original_file_path = f"{SOURCE_PATH}{file_name}{extension}"                             # makes original file path
                     renamed_file_path = f"{FINAL_PATH}/{final_file_name}{extension}"                        # makes replaced file path
-
-                    # print(original_file_path)
-                    # print(renamed_file_path)
 
                     try:
                         log_text = f"Renaming {original_file_path}\nTO\n{renamed_file_path}"                # Logging text parser
@@ -247,7 +231,7 @@ def progress_log_window():
     global log_text_label, progress_bar
 
     # main logger
-    log_text_label = tk.Text(log_main_frame, state="disabled")  # initially disabled so user cannot edit anything
+    log_text_label = tk.Text(log_main_frame, state="disabled")                  # initially disabled so user cannot edit anything
     log_text_label.pack(expand=True, fill="both", side='left')  
 
     # scrollbar behaviour
@@ -314,7 +298,7 @@ def main_randomiser_task(config_data):
     # testing if filelist can even be detected
     global file_list
     try:
-        for root, dirs, files in os.walk(SOURCE_PATH):
+        for root, dirs, files in os.walk(SOURCE_PATH):              # parses and recursively gets all files in text
             for n in files:
                 fp = os.path.join(root, n)
                 ft = fp.replace(SOURCE_PATH, "")
