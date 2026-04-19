@@ -1,5 +1,5 @@
 '''
-XP's Texture Randomiser Script
+XP's Texture Randomizer Script
 '''
 
 # importing all requirementrs, does not require pip
@@ -17,7 +17,7 @@ import subprocess
 # core variables
 # DO NOT CHANGE ON YOUR OWN
 TIMESTAMP = datetime.datetime.now(datetime.timezone.utc)    # generates a timestamp of when script is run
-SEED = ""                                                   # PUT YOUR SEED HERE, wait that sounds wrong, i mean PUT THE SEED FOR THE RANDOMISER HERE
+SEED = ""                                                   # PUT YOUR SEED HERE, wait that sounds wrong, i mean PUT THE SEED FOR THE RANDOMIZER HERE
 SOURCE_PATH = "./textures/"                                 # This is the path for source textures
 FINAL_PATH = "./replacements/"                              # this is the path where all textures will be moved
 LOG = False                                                 # set True or False if you want log.log file generated
@@ -105,13 +105,13 @@ def rename_spec_ext():
     else:
         progress_log_window()
         for extension, value_list in extension_file_array.items():  # loop through list, giving extension, value of extension in dict
-            randomised_list = value_list.copy()                     # copy into randomised list
-            random.shuffle(randomised_list)                         # shuffles
+            randomized_list = value_list.copy()                     # copy into randomized list
+            random.shuffle(randomized_list)                         # shuffles
             value_list_size = len(value_list)
 
             for index, file_name in enumerate(value_list):          # goes through shuffled list
                 try:
-                    final_file_name = randomised_list[index].rsplit('/', 1)[1]                              # makes final file name
+                    final_file_name = randomized_list[index].rsplit('/', 1)[1]                              # makes final file name
 
                     original_file_path = f"{SOURCE_PATH}{file_name}{extension}"                             # makes original file path
                     renamed_file_path = f"{FINAL_PATH}/{final_file_name}{extension}"                        # makes replaced file path
@@ -141,7 +141,7 @@ def rename_spec_ext():
         log_text_label.config(state="disabled")                                         # sets status of log window diabled so user cant edit
         progress_bar['value'] = 100                                                     # progress set to 100
         progress_bar_var.set(f"100% - {value_list_size} / {value_list_size}")           # progress text set to max
-        showinfo(title="Successful", message="Files were successfully randomised")      # Confirms all is done
+        showinfo(title="Successful", message="Files were successfully randomized")      # Confirms all is done
         reset_variables()                                                               # Resets all variables for next replacement
 
 # just makes config file by dumping json to a .json file
@@ -283,10 +283,10 @@ def pressed_ranomise_button(config_data):
     
     last_confirmation = askyesno(title="Are you sure?", message="Are you sure you want to continue? This WILL rename EVERY and ALL files in the SOURCE folder, regardless if they are images or not and move them to the TARGET Folder.")
     if (last_confirmation):                                 # asks user one last time if they want to continue
-        main_randomiser_task(config_data)
+        main_randomizer_task(config_data)
 
-# main randomiser body
-def main_randomiser_task(config_data):
+# main randomizer body
+def main_randomizer_task(config_data):
     # Set variable values
     global SOURCE_PATH, FINAL_PATH, SEED, LOG, CONFIG
     SOURCE_PATH = source_text.get()
@@ -341,7 +341,7 @@ def main():
 
     # defining root window
     root = tk.Tk()
-    root.title("PCSX2 Texture Randomiser")
+    root.title("PCSX2 Texture Randomizer")
     root.geometry("900x450")
     root.resizable(0,0)
 
@@ -379,7 +379,7 @@ def main():
         set_config_variables(config_data=config_data)           # if config file exists, set values to config file ones
 
     # Top Bar
-    title_label = ttk.Label(root, text="PCSX2 Texture Randomiser", font=("Helvetica", 22, "bold"))
+    title_label = ttk.Label(root, text="PCSX2 Texture Randomizer", font=("Helvetica", 22, "bold"))
     about_button = ttk.Button(root, image=github_icon, command=open_github_button_action)
 
     ttk.Separator(root, orient=tk.HORIZONTAL).grid(row=1, column=0, columnspan=5, pady=(0, 20), sticky=DEFAULT_STICKY)
@@ -415,7 +415,7 @@ def main():
     save_settings_checkbox = ttk.Checkbutton(button_frame_right, text="Save Configuration", variable=save_config_bool)
 
     # Target Button
-    target_button = ttk.Button(root, text="RANDOMISE TEXTURES", style="Export.TButton", image=export_icon, compound=tk.LEFT, command=lambda:pressed_ranomise_button(config_data = config_data))
+    target_button = ttk.Button(root, text="RANDOMIZE TEXTURES", style="Export.TButton", image=export_icon, compound=tk.LEFT, command=lambda:pressed_ranomise_button(config_data = config_data))
 
     # PLACING ALL ELEMENTS DOWN
    
