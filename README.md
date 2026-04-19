@@ -68,5 +68,10 @@ To use this script, follow the steps
     - When you boot the game, you should see randomized textures
 - To rerun the script or rerandomize the content, move the textures back to `dumps` folder and follow the steps again 
 
+# Revert Textures
+- To rever the textures back to normal, you can
+    - Either delete the `replacements` folder where the textures are
+    - Turn off `Load Textures` in PCSX2 Graphics Settings
+
 # About
 This script was made by `real-xp`, better know as `XP`, along with help from friends. If you find any flaw, please tell me in the comment feature of gists.
