@@ -2,6 +2,7 @@
 XP's Texture Randomiser Script
 '''
 
+# importing all requirementrs, does not require pip
 import os
 import random
 import datetime
@@ -13,52 +14,58 @@ import webbrowser
 import json
 import subprocess
 
-# variables global
+# core variables
+# DO NOT CHANGE ON YOUR OWN
+TIMESTAMP = datetime.datetime.now(datetime.timezone.utc)    # generates a timestamp of when script is run
+SEED = ""                                                   # PUT YOUR SEED HERE, wait that sounds wrong, i mean PUT THE SEED FOR THE RANDOMISER HERE
+SOURCE_PATH = "./textures/"                                 # This is the path for source textures
+FINAL_PATH = "./replacements/"                              # this is the path where all textures will be moved
+LOG = False                                                 # set True or False if you want log.log file generated
+CONFIG = False                                              # set True or False if you want config.json generated
 
-TIMESTAMP = datetime.datetime.now(datetime.timezone.utc)
-SEED = "" # PUT YOUR SEED HERE, wait that sounds wrong, i mean PUT THE SEED FOR THE RANDOMISER HERE
-SOURCE_PATH = "./textures/" # This is the path for source textures
-FINAL_PATH = "./replacements/" # this is the path where all textures will be moved
-LOG = False # set True or False if you want log.txt file generated
-CONFIG = False
-
+# variables for tkinter styling
 DEFAULT_FONT = ("Helvetica", 12)
 DEFAULT_FONT_NOTEPAD = ("Helvetica", 11)
 DEFAULT_FONT_LABEL = ("Helvetica", 12, "bold")
 DEFAULT_PADDING = 10
-DEFAULT_STICKY = "EW"
+DEFAULT_STICKY = "EW" 
 
-file_list = []
+file_list = []                                              # empty dict initialised before
 # ---
 
-extension_file_array = {}
+extension_file_array = {}                                   # empty dict initialised before
+
+# ------------------------------------------------------------
+#                       CORE FUNCTION
+# ------------------------------------------------------------
 
 # this function does exactly that
 def get_file_list():
     # filter files
 
+    # initialises an empty filter list
     filter_file_list = []
 
     try:
         with open("./filter.txt", 'r') as filter_file:
-            filter_file_list = [line.strip() for line in filter_file]
+            filter_file_list = [line.strip() for line in filter_file]       # parses lines from filter.txt to the array
     except:
         showwarning(title="Filter List", message="Filter List Not Found", detail="Filter List was not found or does not exist.")
 
-    for file in file_list: # for loop to loop through files
+    for file in file_list:                                                  # for loop to loop through files
         try:
-            file_name, extension = os.path.splitext(file) # splits filename and extension
+            file_name, extension = os.path.splitext(file)                   # splits filename and extension
         except:
             showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
             continue
 
-        if (file not in filter_file_list):
-            if (extension != ''): # checks if somehow extension does not exist
-                if (extension_file_array.get(extension) != None): # checks if there is an existing key value entry in dictionary
-                    temp_list_array = extension_file_array[extension] # gets the list of files of that particular extension type
-                    temp_list_array.append(file_name) # adds current iteration file name into that list
+        if (file not in filter_file_list):                                  # checks if file is in filter list
+            if (extension != ''):                                           # checks if somehow extension does not exist
+                if (extension_file_array.get(extension) != None):           # checks if there is an existing key value entry in dictionary
+                    temp_list_array = extension_file_array[extension]       # gets the list of files of that particular extension type
+                    temp_list_array.append(file_name)                       # adds current iteration file name into that list
                 else:
-                    extension_file_array.update({extension : [file_name]}) # makes a new key value pair and adds it to dict
+                    extension_file_array.update({extension : [file_name]})  # makes a new key value pair and adds it to dict
 
 # checks validity of path, -1 = error, 0 = passed check
 def check_path_validity():
@@ -92,42 +99,45 @@ def rename_spec_ext():
         showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
     else:
         progress_log_window()
-        for extension, value_list in extension_file_array.items(): # loop through list, giving extension, value of extension in dict
-            randomised_list = value_list.copy() # copy into randomised list
-            random.shuffle(randomised_list) # shuffles
+        for extension, value_list in extension_file_array.items():  # loop through list, giving extension, value of extension in dict
+            randomised_list = value_list.copy()                     # copy into randomised list
+            random.shuffle(randomised_list)                         # shuffles
             value_list_size = len(value_list)
 
-            for index, file_name in enumerate(value_list):
+            for index, file_name in enumerate(value_list):          # goes through shuffled list
                 try:
-                    original_file_path = os.path.join(SOURCE_PATH, file_name+extension)
-                    renamed_file_path = os.path.join(FINAL_PATH, randomised_list[index]+extension)
+                    original_file_path = os.path.join(SOURCE_PATH, file_name+extension)                     # makes original file path
+                    renamed_file_path = os.path.join(FINAL_PATH, randomised_list[index]+extension)          # makes replaced file path
 
-                    log_text = f"Renaming {original_file_path}\nTO\n{renamed_file_path}"
-                    log_text_label.config(state="normal")
-                    log_text_label.insert(tk.END, f"{log_text}\n\n")
+                    try:
+                        log_text = f"Renaming {original_file_path}\nTO\n{renamed_file_path}"                # Logging text parser
+                        log_text_label.config(state="normal")                                               # sets state to normal so the logging window is user editable
+                        log_text_label.insert(tk.END, f"{log_text}\n\n")
 
-                    # progress bar
-                    current_progress = (index / value_list_size)
-                    progress_bar['value'] = current_progress
-                    progress_bar_var.set(f"{current_progress*100}% - {index+1} / {value_list_size}")
+                        # progress bar
+                        current_progress = (index / value_list_size)                                        # for progress bar percentage
+                        progress_bar['value'] = current_progress                                            # sets progress bar value
+                        progress_bar_var.set(f"{current_progress*100}% - {index+1} / {value_list_size}")    # progress text value
+                    except:
+                        print("Log window closed")
 
-                    print (log_text)
-                    if (LOG):
-                        is_first_time = False
-                        if (index == 0):
+                    if (LOG):                                               # checks if log making is on
+                        is_first_time = False                               # inits new first time var
+                        if (index == 0):                                    # sees if first time log
                             is_first_time = True
                         log_file(is_first_time, log_text)
-                    os.rename(original_file_path, renamed_file_path)
+                    os.rename(original_file_path, renamed_file_path)        # actual renaming action
                 except:
-                    print("\n---\tError Renaming And Moving File From Source To Final Path\t---\n")
                     showerror(title="Error Replacing", message="Files could not be replaced")
-        print("\n---\tFile Replacements Done!\t---\n")
-        log_text_label.config(state="disabled")
-        progress_bar['value'] = 100
-        progress_bar_var.set(f"100% - {value_list_size} / {value_list_size}")
-        showinfo(title="Successful", message="Files were successfully randomised")
-        reset_variables()
 
+        # all things done
+        log_text_label.config(state="disabled")                                         # sets status of log window diabled so user cant edit
+        progress_bar['value'] = 100                                                     # progress set to 100
+        progress_bar_var.set(f"100% - {value_list_size} / {value_list_size}")           # progress text set to max
+        showinfo(title="Successful", message="Files were successfully randomised")      # Confirms all is done
+        reset_variables()                                                               # Resets all variables for next replacement
+
+# just makes config file by dumping json to a .json file
 def make_config_file(data):
     try:   
         with open("./config.json", 'w') as config_file:
@@ -137,6 +147,7 @@ def make_config_file(data):
     except json.JSONDecodeError:
         print("Error: Failed to decode JSON from the file.")
 
+# reads config file, returns either json data, or empty
 def read_config_file():
     try:   
         with open("./config.json", 'r') as config_file:
@@ -148,13 +159,18 @@ def read_config_file():
         print("Error: Failed to decode JSON from the file.")
         return {}
 
+# This is to set the variables from config file, may throw error if config file is tampered with
 def set_config_variables(config_data):
     global SOURCE_PATH, FINAL_PATH, SEED, LOG, CONFIG
-    SOURCE_PATH = source_text.set(config_data["source_path"])
-    FINAL_PATH = target_text.set(config_data["final_path"])
-    SEED = seed_text.set(config_data["seed"])
-    LOG = make_log_bool.set(config_data["make_log_file"])
-    CONFIG = save_config_bool.set(config_data["make_config_file"])
+    try:
+        SOURCE_PATH = source_text.set(config_data["source_path"])
+        FINAL_PATH = target_text.set(config_data["final_path"])
+        SEED = seed_text.set(config_data["seed"])
+        LOG = make_log_bool.set(config_data["make_log_file"])
+        CONFIG = save_config_bool.set(config_data["make_config_file"])
+    except:
+        # TODO : Make a delete function for corrupt config file
+        showerror(title="Config Error", message="Config File Could Not Be Loaded")
 
 # crypto miner, jk, this just notes the seeds in the seeds.txt file with timestamps
 def seed_txt(seed):
@@ -164,6 +180,7 @@ def seed_txt(seed):
     except FileNotFoundError:
         print("Error: The file 'seeds.json' was not found.")
 
+# Logging function, makes log.log file, accepts first_time, which sees if it is first time making log this session, and string_file, data for log
 def log_file(first_time, string_file):
     try:   
         with open("./log.log", 'a') as log_file:
@@ -173,24 +190,26 @@ def log_file(first_time, string_file):
     except FileNotFoundError:
         print("Error: The file 'log.log' was not found.")
 
+# It resets variables after replacement of all textures is done
 def reset_variables():
     global SOURCE_PATH, FINAL_PATH, SEED, file_list
-    SOURCE_PATH = source_text.set("")
-    FINAL_PATH = target_text.set("")
-    SEED = seed_text.set("")
-    file_list = []
+    try:
+        SOURCE_PATH = source_text.set("")
+        FINAL_PATH = target_text.set("")
+        SEED = seed_text.set("")
+        file_list = []
+    except:
+        print("Error resetting vars")
 
-# ---
-# TKINTER WINDOW
+# ------------------------------------------------------------
+#                       TKINTER WINDOW
+# ------------------------------------------------------------
 
-def choose_random_seed():
-    seed_text.set(str(random.randint(0, pow(2, 32))))
-
-def refresh_progress_window():
-    log_window.update()
-
+# Opens the log + progress bar window
 def progress_log_window():
     global log_window
+
+    # makes new window for logging
     log_window = tk.Toplevel(root)
     log_window.title("Executing")
     log_window.geometry("900x450")
@@ -203,9 +222,12 @@ def progress_log_window():
     log_text_label_scroll.pack(fill="y", side='right')
 
     global log_text_label, progress_bar
-    log_text_label = tk.Text(log_main_frame, state="disabled")
+
+    # main logger
+    log_text_label = tk.Text(log_main_frame, state="disabled")  # initially disabled so user cannot edit anything
     log_text_label.pack(expand=True, fill="both", side='left')  
 
+    # scrollbar behaviour
     log_text_label['yscrollcommand']=log_text_label_scroll.set
     log_text_label_scroll.config(command=log_text_label.yview)
 
@@ -214,9 +236,11 @@ def progress_log_window():
     progress_bar_label = ttk.Label(log_window, text="0%", textvariable=progress_bar_var)
     progress_bar_label.pack(expand=True, fill='x', padx=5)
 
+# opens my github tutorial readme.md
 def open_github_button_action():
     webbrowser.open("https://gist.github.com/real-xp/e9f5b9bb9f416043a9f7dc6e9ab3a7f6#file-readme-md")
 
+# Folder Picker dialog box for both Source And Target Folders
 def dialog_box_button_action(action):
     dialog_path = filedialog.askdirectory(title="Choose A {action} Path")
     if (dialog_path != ""):
@@ -225,6 +249,7 @@ def dialog_box_button_action(action):
         elif (action == "Target"):
             target_text.set(dialog_path)
 
+# Opens Notepad When Button Pressed
 def note_tkinter_window(type_of_action):
     if (type_of_action == "LOG"):
         subprocess.run(["notepad","./log.log"])
@@ -236,72 +261,77 @@ def note_tkinter_window(type_of_action):
         showerror(title="Error", message="Some Kind Of Error Occured")
         
 def pressed_ranomise_button(config_data):
-    print("Pressed")
     # Multiple Checks
-    if (source_text.get() != ""):
-        if (target_text.get() != ""):
-            if (source_text.get() != target_text.get()):
-                print("ok")
-
-                # set path values
-                global SOURCE_PATH, FINAL_PATH, SEED, LOG, CONFIG
-                SOURCE_PATH = source_text.get()
-                FINAL_PATH = target_text.get()
-                SEED = seed_text.get()
-                LOG = make_log_bool.get()
-                CONFIG = save_config_bool.get()
-
-                # testing if filelist can even be detected
-                global file_list
-                try:
-                    file_list = os.listdir(path=SOURCE_PATH)
-                except:
-                    print("\n---\tError Detecting Files\t---\n")
-                    showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
-
-                # saving configuration
-                if (CONFIG):
-                    config_data = {
-                        "source_path" : SOURCE_PATH,
-                        "final_path": FINAL_PATH,
-                        "seed": SEED,
-                        "make_log_file": LOG,
-                        "make_config_file": CONFIG,
-                    }
-                    make_config_file(config_data)
-
-
-                if (file_list != []):
-                    if (SEED != ''):
-                        random.seed(SEED)
-                        seed_txt(SEED)
-                    else:
-                        temp_rand_seed = str(random.randint(0, pow(2, 32)))
-                        random.seed(temp_rand_seed)
-                        seed_txt(temp_rand_seed)
-
-                    if (check_path_validity() == 0):
-                        get_file_list()
-                        rename_spec_ext()
-                    else:
-                        print("\n---\tExiting Program!\t---\n")
-                        showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
-
-            else:
-                showerror(title="Error",message="Source and Target Paths Conflict" , detail="Source and Target Paths cannot be same.")
-        else:
-            showerror(title="Error",message="Target Path Empty" , detail="Target path is empty. Please fill in the path.")
-    else:
+    if (source_text.get() == ""):                           # sees if source entry is empty
         showerror(title="Error",message="Source Path Empty" , detail="Source path is empty. Please fill in the path.")
+        return
 
+    if (target_text.get() == ""):                           # sees if target entry is empty
+        showerror(title="Error",message="Target Path Empty" , detail="Target path is empty. Please fill in the path.")
+        return
+    
+    if (target_text.get() == source_text.get()):            # sees if both are same path
+        showerror(title="Error",message="Source and Target Paths Conflict" , detail="Source and Target Paths cannot be same.")
+        return
+    
+    main_randomiser_task(config_data)
+
+
+# main randomiser body
+def main_randomiser_task(config_data):
+    # Set variable values
+    global SOURCE_PATH, FINAL_PATH, SEED, LOG, CONFIG
+    SOURCE_PATH = source_text.get()
+    FINAL_PATH = target_text.get()
+    SEED = seed_text.get()
+    LOG = make_log_bool.get()
+    CONFIG = save_config_bool.get()
+
+    # testing if filelist can even be detected
+    global file_list
+    try:
+        file_list = os.listdir(path=SOURCE_PATH) 
+    except:
+        showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
+
+    # saving configuration
+    if (CONFIG):
+        config_data = {
+            "source_path" : SOURCE_PATH,
+            "final_path": FINAL_PATH,
+            "seed": SEED,
+            "make_log_file": LOG,
+            "make_config_file": CONFIG,
+        }
+        make_config_file(config_data)                               # calls the config making function
+
+    # sees if file list is not empty
+    if (file_list != []):
+        if (SEED != ''):                                            # checks if user left seed input field empty
+            random.seed(SEED)                                       # set seed
+            seed_txt(SEED)                                          # seed logger
+        else:
+            temp_rand_seed = str(random.randint(0, pow(2, 32)))     # chooses random int between 0 and 2**32
+            random.seed(temp_rand_seed)
+            seed_txt(temp_rand_seed)
+
+        if (check_path_validity() == 0):                            # checks if path is valid
+            get_file_list()                                         # calls on file filter and file collector
+            rename_spec_ext()                                       # actual renaming function
+        else:
+            showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
+
+# main body of the program, this runs the tkinter window
 def main():
     global root
 
+    # defining root window
     root = tk.Tk()
     root.title("PCSX2 Texture Randomiser")
     root.geometry("900x450")
     root.resizable(0,0)
 
+    # defining styles for ttk widgets
     root.style = ttk.Style(root)
     root.style.configure('TLabel', font=DEFAULT_FONT_LABEL)
     root.style.configure('TButton', font=DEFAULT_FONT_LABEL)
@@ -309,27 +339,30 @@ def main():
     root.style.configure("Export.TButton", font = ("Helvetica", 16, "bold"))
     root.style.configure("Save.TButton", font=DEFAULT_FONT_LABEL)
 
+    # defining column weight
     root.columnconfigure(index=1, weight=5)
 
+    # importing icons for buttons
+    # TODO: Remove this, add base64 function later
     github_icon = tk.PhotoImage(file='./assets/github.png')
     folder_icon = tk.PhotoImage(file='./assets/folder.png')
     random_icon = tk.PhotoImage(file='./assets/random.png')
     export_icon = tk.PhotoImage(file='./assets/export.png')
 
-    # VARIABLES
 
+    # VARIABLES
     global source_text, target_text, seed_text, make_log_bool, save_config_bool, progress_bar_var
 
-    source_text = tk.StringVar()
-    target_text = tk.StringVar()
-    seed_text = tk.StringVar()
-    make_log_bool = tk.BooleanVar()
-    save_config_bool = tk.BooleanVar()
-    progress_bar_var = tk.StringVar()
+    source_text = tk.StringVar()                                # takes source string from input
+    target_text = tk.StringVar()                                # takes target string from input
+    seed_text = tk.StringVar()                                  # takes seed from input
+    make_log_bool = tk.BooleanVar()                             # takes checkbox boolean value of log
+    save_config_bool = tk.BooleanVar()                          # takes checkbox boolena value of config
+    progress_bar_var = tk.StringVar()                           # stores progress bar data for update purposes
 
-    config_data = read_config_file()
+    config_data = read_config_file()                            # reads the config file
     if (config_data != {}):
-        set_config_variables(config_data=config_data)   
+        set_config_variables(config_data=config_data)           # if config file exists, set values to config file ones
 
     # Top Bar
     title_label = ttk.Label(root, text="PCSX2 Texture Randomiser", font=("Helvetica", 22, "bold"))
@@ -348,7 +381,7 @@ def main():
 
     seed_input_label = ttk.Label(root, text="Seed")
     seed_input = ttk.Entry(root, font=DEFAULT_FONT, textvariable=seed_text)
-    seed_validate = ttk.Button(root, image=random_icon, text="Random", compound=tk.LEFT, command=choose_random_seed)
+    seed_validate = ttk.Button(root, image=random_icon, text="Random", compound=tk.LEFT, command=lambda: seed_text.set(str(random.randint(0, pow(2, 32)))))
 
     ttk.Separator(root, orient=tk.HORIZONTAL).grid(row=5, column=0, columnspan=5, pady=10, sticky=DEFAULT_STICKY)
 
@@ -369,11 +402,6 @@ def main():
 
     # Target Button
     target_button = ttk.Button(root, text="RANDOMISE TEXTURES", style="Export.TButton", image=export_icon, compound=tk.LEFT, command=lambda:pressed_ranomise_button(config_data = config_data))
-
-    # ADDING TOOLTIPS
-
-    tk.T
-
 
     # PLACING ALL ELEMENTS DOWN
    
@@ -407,11 +435,8 @@ def main():
 
     target_button.grid(row=7, column=0, columnspan=5, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, ipadx=25, ipady=10, sticky=DEFAULT_STICKY)
 
-
-
-
-
     root.mainloop()
 
+# This is to ensure the program is run as a separate file and not a package
 if __name__ == "__main__":
-    main()
+    main()                                                  # calls on main function
