@@ -9,7 +9,7 @@ import datetime
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
-from tkinter.messagebox import showerror, showinfo, showwarning
+from tkinter.messagebox import showerror, showinfo, showwarning, askyesno
 import webbrowser
 import json
 import subprocess
@@ -48,24 +48,36 @@ def get_file_list():
 
     try:
         with open("./filter.txt", 'r') as filter_file:
-            filter_file_list = [line.strip() for line in filter_file]       # parses lines from filter.txt to the array
+            # filter_file_list = [line.strip() for line in filter_file]               # parses lines from filter.txt to the array
+            for line in filter_file:
+                print(line)
+                line.strip()
+                if (line.find(".") != -1):
+                    filter_file_list.append(line.rsplit('.', 1)[0])
     except:
         showwarning(title="Filter List", message="Filter List Not Found", detail="Filter List was not found or does not exist.")
 
-    for file in file_list:                                                  # for loop to loop through files
+    for file in file_list:                                                          # for loop to loop through files
         try:
-            file_name, extension = os.path.splitext(file)                   # splits filename and extension
+            file_name, extension = os.path.splitext(file)                           # splits filename and extension
+
+            file_is_in_filter = False
+
+            for filter_element in filter_file_list:
+                if filter_element in file_name:
+                    file_is_in_filter = True
+                    break
+
+            if (not file_is_in_filter):                                             # checks if file is in filter list
+                if (extension != ''):                                               # checks if somehow extension does not exist
+                    if (extension_file_array.get(extension) != None):               # checks if there is an existing key value entry in dictionary
+                        temp_list_array = extension_file_array[extension]           # gets the list of files of that particular extension type
+                        temp_list_array.append(file_name)                           # adds current iteration file name into that list
+                    else:
+                        extension_file_array.update({extension : [file_name]})      # makes a new key value pair and adds it to dict
         except:
             showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
             continue
-
-        if (file not in filter_file_list):                                  # checks if file is in filter list
-            if (extension != ''):                                           # checks if somehow extension does not exist
-                if (extension_file_array.get(extension) != None):           # checks if there is an existing key value entry in dictionary
-                    temp_list_array = extension_file_array[extension]       # gets the list of files of that particular extension type
-                    temp_list_array.append(file_name)                       # adds current iteration file name into that list
-                else:
-                    extension_file_array.update({extension : [file_name]})  # makes a new key value pair and adds it to dict
 
 # checks validity of path, -1 = error, 0 = passed check
 def check_path_validity():
@@ -104,10 +116,21 @@ def rename_spec_ext():
             random.shuffle(randomised_list)                         # shuffles
             value_list_size = len(value_list)
 
+
             for index, file_name in enumerate(value_list):          # goes through shuffled list
                 try:
-                    original_file_path = os.path.join(SOURCE_PATH, file_name+extension)                     # makes original file path
-                    renamed_file_path = os.path.join(FINAL_PATH, randomised_list[index]+extension)          # makes replaced file path
+                    final_file_name = randomised_list[index].rsplit('/', 1)[1]
+
+                    # print(SOURCE_PATH)
+                    # print(FINAL_PATH)
+                    # print(file_name)
+                    # print(final_file_name)
+
+                    original_file_path = f"{SOURCE_PATH}{file_name}{extension}"                             # makes original file path
+                    renamed_file_path = f"{FINAL_PATH}/{final_file_name}{extension}"                        # makes replaced file path
+
+                    # print(original_file_path)
+                    # print(renamed_file_path)
 
                     try:
                         log_text = f"Renaming {original_file_path}\nTO\n{renamed_file_path}"                # Logging text parser
@@ -274,8 +297,9 @@ def pressed_ranomise_button(config_data):
         showerror(title="Error",message="Source and Target Paths Conflict" , detail="Source and Target Paths cannot be same.")
         return
     
-    main_randomiser_task(config_data)
-
+    last_confirmation = askyesno(title="Are you sure?", message="Are you sure you want to continue? This WILL rename EVERY and ALL files in the SOURCE folder, regardless if they are images or not and move them to the TARGET Folder.")
+    if (last_confirmation):                                 # asks user one last time if they want to continue
+        main_randomiser_task(config_data)
 
 # main randomiser body
 def main_randomiser_task(config_data):
@@ -290,7 +314,13 @@ def main_randomiser_task(config_data):
     # testing if filelist can even be detected
     global file_list
     try:
-        file_list = os.listdir(path=SOURCE_PATH) 
+        for root, dirs, files in os.walk(SOURCE_PATH):
+            for n in files:
+                fp = os.path.join(root, n)
+                ft = fp.replace(SOURCE_PATH, "")
+                fl = ft.replace("\\", "/")
+                file_list.append(fl)
+        # file_list = os.listdir(path=SOURCE_PATH) OLD NON RECURSIVE METHOD
     except:
         showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
 
