@@ -52,7 +52,7 @@ def get_file_list():
             showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
             continue
 
-        if (file_name not in filter_file_list):
+        if (file not in filter_file_list):
             if (extension != ''): # checks if somehow extension does not exist
                 if (extension_file_array.get(extension) != None): # checks if there is an existing key value entry in dictionary
                     temp_list_array = extension_file_array[extension] # gets the list of files of that particular extension type
@@ -331,63 +331,85 @@ def main():
     if (config_data != {}):
         set_config_variables(config_data=config_data)   
 
-    # topbar
+    # Top Bar
     title_label = ttk.Label(root, text="PCSX2 Texture Randomiser", font=("Helvetica", 22, "bold"))
-    title_label.grid(row=0, column=0, columnspan=2, padx=20, pady=30, sticky='EW')
     about_button = ttk.Button(root, image=github_icon, command=open_github_button_action)
-    about_button.grid(row=0, column=3, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, ipadx=10, ipady=10, sticky=DEFAULT_STICKY)
 
     ttk.Separator(root, orient=tk.HORIZONTAL).grid(row=1, column=0, columnspan=5, pady=(0, 20), sticky=DEFAULT_STICKY)
 
+    # Mid level
     source_input_label = ttk.Label(root, text="Source Path")
-    source_input_label.grid(row=2, column=0, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, sticky='w')
     source_input = ttk.Entry(root, font=DEFAULT_FONT, textvariable=source_text)
-    source_input.grid(row=2, column=1, columnspan=1, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, sticky=DEFAULT_STICKY)
     source_dialogue = ttk.Button(root, image=folder_icon, text="Choose", compound=tk.LEFT, command=lambda: dialog_box_button_action(action="Source"))
-    source_dialogue.grid(row=2, column=2, columnspan=3, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, sticky=DEFAULT_STICKY)
 
     target_input_label = ttk.Label(root, text="Target Path")
-    target_input_label.grid(row=3, column=0, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, sticky='w')
     target_input = ttk.Entry(root, font=DEFAULT_FONT, textvariable=target_text)
-    target_input.grid(row=3, column=1, columnspan=1, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, sticky=DEFAULT_STICKY)
     target_dialogue = ttk.Button(root, image=folder_icon, text="Choose", compound=tk.LEFT, command=lambda: dialog_box_button_action(action="Target"))
-    target_dialogue.grid(row=3, column=2, columnspan=3, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, sticky=DEFAULT_STICKY)
 
     seed_input_label = ttk.Label(root, text="Seed")
-    seed_input_label.grid(row=4, column=0, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, sticky='w')
     seed_input = ttk.Entry(root, font=DEFAULT_FONT, textvariable=seed_text)
-    seed_input.grid(row=4, column=1, columnspan=1, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, sticky=DEFAULT_STICKY)
     seed_validate = ttk.Button(root, image=random_icon, text="Random", compound=tk.LEFT, command=choose_random_seed)
-    seed_validate.grid(row=4, column=2, columnspan=3, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, sticky=DEFAULT_STICKY)
 
     ttk.Separator(root, orient=tk.HORIZONTAL).grid(row=5, column=0, columnspan=5, pady=10, sticky=DEFAULT_STICKY)
 
+    # Bottom Level
     button_frame = ttk.Frame(root)
     button_frame.columnconfigure(index=1, weight=5)
-    button_frame.grid(row=6, column=0, columnspan=5, sticky=DEFAULT_STICKY)
-
     button_frame_left = ttk.Frame(button_frame)
-    button_frame_left.grid(row=0, column=0, columnspan=2, sticky=DEFAULT_STICKY)
-
     button_frame_right = ttk.Frame(button_frame)
-    button_frame_right.grid(row=0, column=2, columnspan=2, sticky=DEFAULT_STICKY)
 
     # buttons
     seed_file_button = ttk.Button(button_frame_left, text="Seed History", command=lambda:note_tkinter_window("SEED"))
-    seed_file_button.grid(row=0, column=0, columnspan=1, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, sticky=DEFAULT_STICKY)
     filter_file_button = ttk.Button(button_frame_left, text="Filter File", command=lambda:note_tkinter_window("FILTER"))
-    filter_file_button.grid(row=0, column=1, columnspan=1, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, sticky=DEFAULT_STICKY)
     log_file_button = ttk.Button(button_frame_left, text="Log", command=lambda:note_tkinter_window("LOG"))
-    log_file_button.grid(row=0, column=2, columnspan=1, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, sticky=DEFAULT_STICKY)
 
     # checkbox
     log_checkbox = ttk.Checkbutton(button_frame_right, text="Make Logs", variable=make_log_bool)
-    log_checkbox.grid(row=0, column=0, columnspan=1, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, sticky=DEFAULT_STICKY)
     save_settings_checkbox = ttk.Checkbutton(button_frame_right, text="Save Configuration", variable=save_config_bool)
+
+    # Target Button
+    target_button = ttk.Button(root, text="RANDOMISE TEXTURES", style="Export.TButton", image=export_icon, compound=tk.LEFT, command=lambda:pressed_ranomise_button(config_data = config_data))
+
+    # ADDING TOOLTIPS
+
+    tk.T
+
+
+    # PLACING ALL ELEMENTS DOWN
+   
+   # Top Bar
+    title_label.grid(row=0, column=0, columnspan=2, padx=20, pady=30, sticky='EW')
+    about_button.grid(row=0, column=3, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, ipadx=10, ipady=10, sticky=DEFAULT_STICKY)
+   
+   # Mid Bar
+    source_input_label.grid(row=2, column=0, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, sticky='w')
+    source_input.grid(row=2, column=1, columnspan=1, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, sticky=DEFAULT_STICKY)
+    source_dialogue.grid(row=2, column=2, columnspan=3, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, sticky=DEFAULT_STICKY)
+
+    target_input_label.grid(row=3, column=0, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, sticky='w')
+    target_input.grid(row=3, column=1, columnspan=1, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, sticky=DEFAULT_STICKY)
+    target_dialogue.grid(row=3, column=2, columnspan=3, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, sticky=DEFAULT_STICKY)
+
+    seed_input_label.grid(row=4, column=0, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, sticky='w')
+    seed_input.grid(row=4, column=1, columnspan=1, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, sticky=DEFAULT_STICKY)
+    seed_validate.grid(row=4, column=2, columnspan=3, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, sticky=DEFAULT_STICKY)
+
+    button_frame.grid(row=6, column=0, columnspan=5, sticky=DEFAULT_STICKY)
+    button_frame_left.grid(row=0, column=0, columnspan=2, sticky=DEFAULT_STICKY)
+    button_frame_right.grid(row=0, column=2, columnspan=2, sticky=DEFAULT_STICKY)
+
+    seed_file_button.grid(row=0, column=0, columnspan=1, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, sticky=DEFAULT_STICKY)
+    filter_file_button.grid(row=0, column=1, columnspan=1, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, sticky=DEFAULT_STICKY)
+    log_file_button.grid(row=0, column=2, columnspan=1, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, sticky=DEFAULT_STICKY)
+
+    log_checkbox.grid(row=0, column=0, columnspan=1, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, sticky=DEFAULT_STICKY)
     save_settings_checkbox.grid(row=0, column=1, columnspan=1, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, sticky=DEFAULT_STICKY)
 
-    target_button = ttk.Button(root, text="RANDOMISE TEXTURES", style="Export.TButton", image=export_icon, compound=tk.LEFT, command=lambda:pressed_ranomise_button(config_data = config_data))
     target_button.grid(row=7, column=0, columnspan=5, padx=DEFAULT_PADDING, pady=DEFAULT_PADDING, ipadx=25, ipady=10, sticky=DEFAULT_STICKY)
+
+
+
+
 
     root.mainloop()
 
