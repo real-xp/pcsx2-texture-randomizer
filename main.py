@@ -30,6 +30,13 @@ DEFAULT_FONT_LABEL = ("Helvetica", 12, "bold")
 DEFAULT_PADDING = 10
 DEFAULT_STICKY = "EW" 
 
+# base64 encoded array for icons
+ASSETS_COMPRESSED = [b'iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAsTAAALEwEAmpwYAAABZUlEQVR4nO2YvS5EURSFP4xEjVoh5gW8gFaEKCgYU9FTimHMlJJ5Az8tnsBPtKJG4i1QoVFcOcmZZEeMDPa+7mF/yU5ObrHWXsm59+x7wHEcx3H+MLPAOfAIZIoV9M6AGavGe4ED5aY71V70U6WRU/NZrLpm88PAixA/BMY0DaLekfB4Boa0xCtC+Brow4YScCO8FrWEa0K0hS0t4bWhJdoUomFtSdPCywP8pwArwms5xQAlYA1Yjes2I/HZQNEDdGIr+t8B4yQYoCl6eAV2gP68A4T5pgqsf6MuPhg3rrqdCLQCVA1mpidgwgN0SQ+wFPfvV+uyCFso+Zf4J9RT+oxOxpKMxgOu8AfZvPCa0xLNM0BDeIW1Cj6N/rZXLfVfysq7n3o55moSdG+F14LVtcoxUEaXctTNxLXKoKbBtsEc81ltokwYhfdzan7X4mqxzTRwCjwoN30PnABTVo07juM4DinwBhMpYowgYl2CAAAAAElFTkSuQmCC',
+b'iVBORw0KGgoAAAANSUhEUgAAABkAAAAZCAYAAADE6YVjAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAdUlEQVR4nO2UuwmAMBQADxxB3Chq5Sza2YUUKVzMWdzC2KQIYpEfWvgOrkpxvAd5IAgBI7B6Z6ALH2swAO7mAUxAUyuiHyIxnsAOtDERkxlx3iUmooCtQPXGJEYiTiKfrksXRnTu7UpREUkP2MSfblMCwg+4APi8xUNSsC6OAAAAAElFTkSuQmCC',
+b'iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAACXBIWXMAAAsTAAALEwEAmpwYAAABr0lEQVR4nO2Vu0oDQRSGPxVUFCwUJF4RL621F0RRsDOoqLWNhZdokdbKt1CJF7QSBEWCFoJPYGMVKy3shIgx3mKiEpiFZZiZnd0EscgPQ9jN+c+35zBnBkr6h2oHIsAFkADSYiXEuxWgrZjAFmATyAI/HisHHAEdhUIngRcLoLxSQDgodE1U4Bfqrn41SKW5AqBuuHXlrYr29gG9QMwDFBNxA1Lbm23AquRVUjeGgUagQvyOiPeOqiX/ts3IqHZvN/7UI/mzopNaRTQtHPQJHlLkWDYZzhWGY4LpVMoTNwXfKsD9AcFy1QlTcMpjY/lRreJQ0SqtANcRTA1SnldT8J0CPBEQPC3luTcFxxXgazGXflQD3Eh5zkyGqGacLm1PHzGvV4ocUZMpf59mNPA3YAeYBTolX/55DtgD3hXeDNDk9cUHLsM8cKL4gHHJMwp8GM7wfduLPykMj0A9cCgSPwHrGt+GBvpsU62jGde1uGDp6dJci1O2UEdLwDfwAIxZ7OxyBXSRgAqL9roTmuTEJINUKis/RlvAlwX4E9gFQhRRIXFtVmr+L/Mx6yXxZ/oFDl37po6ZopsAAAAASUVORK5CYII=',
+b'iVBORw0KGgoAAAANSUhEUgAAABkAAAAZCAYAAADE6YVjAAAACXBIWXMAAAsTAAALEwEAmpwYAAAA6ElEQVR4nO3UPUoDURSG4WeUCO7AymxANAmiFimCC0hnoYWlkF4RAv5UIogx67CzTptFuA1XoAwc4SJhIDMZITAvHLg/B869537fpaGhIsfYVTOP+MIVsqLEfdwmcYN+Qf4mLiJ3hu+I92VO18IZRgv2tjDFQXKTvMAnTpTgHMNknrfjBe1k7Rpv2FaBMQ5jfI+OGsjwijucqpFLfFRtSRGDEMAOJthYdYG9eJNfOiHbldEOJWV/1oehulRdkzKt7IYXck8sYhQ+ai3jkx6eI57ipLmri+jjAfOyjq/l76rC0X/8wg1rxA8spCRqv9dJPwAAAABJRU5ErkJggg==']
+
+
 file_list = []                                              # empty dict initialised before
 # ---
 
@@ -47,8 +54,7 @@ def get_file_list():
     filter_file_list = []
 
     try:
-        with open("./filter.txt", 'r') as filter_file:
-            # filter_file_list = [line.strip() for line in filter_file]               
+        with open("./filter.txt", 'r') as filter_file:             
             for line in filter_file:                                                # parses lines from filter.txt to the array
                 line.strip()                                                        # removes newline character
                 if (line.find(".") != -1):
@@ -304,7 +310,6 @@ def main_randomizer_task(config_data):
                 ft = fp.replace(SOURCE_PATH, "")
                 fl = ft.replace("\\", "/")
                 file_list.append(fl)
-        # file_list = os.listdir(path=SOURCE_PATH) OLD NON RECURSIVE METHOD
     except:
         showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
 
@@ -366,28 +371,35 @@ def main():
     save_config_bool = tk.BooleanVar()                          # takes checkbox boolena value of config
     progress_bar_var = tk.StringVar()                           # stores progress bar data for update purposes
 
+
+    # defining images
+    export_image = tk.PhotoImage(data=ASSETS_COMPRESSED[0])
+    folder_image = tk.PhotoImage(data=ASSETS_COMPRESSED[1])
+    github_image = tk.PhotoImage(data=ASSETS_COMPRESSED[2])
+    random_image = tk.PhotoImage(data=ASSETS_COMPRESSED[3])
+
     config_data = read_config_file()                            # reads the config file
     if (config_data != {}):
         set_config_variables(config_data=config_data)           # if config file exists, set values to config file ones
 
     # Top Bar
     title_label = ttk.Label(root, text="PCSX2 Texture Randomizer", font=("Helvetica", 22, "bold"))
-    about_button = ttk.Button(root, text="GitHub Page", command=open_github_button_action)
+    about_button = ttk.Button(root, image=github_image, command=open_github_button_action)
 
     ttk.Separator(root, orient=tk.HORIZONTAL).grid(row=1, column=0, columnspan=5, pady=(0, 20), sticky=DEFAULT_STICKY)
 
     # Mid level
     source_input_label = ttk.Label(root, text="Source Path")
     source_input = ttk.Entry(root, font=DEFAULT_FONT, textvariable=source_text)
-    source_dialogue = ttk.Button(root, text="Choose", compound=tk.LEFT, command=lambda: dialog_box_button_action(action="Source"))
+    source_dialogue = ttk.Button(root, text="Choose", image=folder_image, compound=tk.LEFT, command=lambda: dialog_box_button_action(action="Source"))
 
     target_input_label = ttk.Label(root, text="Target Path")
     target_input = ttk.Entry(root, font=DEFAULT_FONT, textvariable=target_text)
-    target_dialogue = ttk.Button(root, text="Choose", compound=tk.LEFT, command=lambda: dialog_box_button_action(action="Target"))
+    target_dialogue = ttk.Button(root, text="Choose", image=folder_image, compound=tk.LEFT, command=lambda: dialog_box_button_action(action="Target"))
 
     seed_input_label = ttk.Label(root, text="Seed")
     seed_input = ttk.Entry(root, font=DEFAULT_FONT, textvariable=seed_text)
-    seed_validate = ttk.Button(root, text="Random", compound=tk.LEFT, command=lambda: seed_text.set(str(random.randint(0, pow(2, 32)))))
+    seed_validate = ttk.Button(root, text="Random", image=random_image, compound=tk.LEFT, command=lambda: seed_text.set(str(random.randint(0, pow(2, 32)))))
 
     ttk.Separator(root, orient=tk.HORIZONTAL).grid(row=5, column=0, columnspan=5, pady=10, sticky=DEFAULT_STICKY)
 
@@ -407,7 +419,7 @@ def main():
     save_settings_checkbox = ttk.Checkbutton(button_frame_right, text="Save Configuration", variable=save_config_bool)
 
     # Target Button
-    target_button = ttk.Button(root, text="RANDOMIZE TEXTURES", style="Export.TButton", compound=tk.LEFT, command=lambda:pressed_ranomise_button(config_data = config_data))
+    target_button = ttk.Button(root, text="RANDOMIZE TEXTURES", image=export_image, style="Export.TButton", compound=tk.LEFT, command=lambda:pressed_ranomise_button(config_data = config_data))
 
     # PLACING ALL ELEMENTS DOWN
    
