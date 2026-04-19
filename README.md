@@ -1,5 +1,5 @@
-# PCSX2 Texture Randomiser
-This is a simple script I made to randomise texture dumps from PCSX2.
+# PCSX2 Texture randomizer
+This is a simple script I made to randomize texture dumps from PCSX2.
 Initially the script was made just for the purpose of randomising Enthusia (game) textures, but this can be used in many other games
 
 # Requirements
@@ -13,42 +13,60 @@ Initially the script was made just for the purpose of randomising Enthusia (game
 # Usage
 To use this script, follow the steps
 - Download the `main.py` file
-- Download the textures you want to randomise
-    - Make sure the textures you want to randomise are in a separate folder to your `replacements` folder
-- Put the file in the textures folder of PCSX2, the folder where you see `dumps` and `replacements` folder
-    - So like in the case of Enthusia, in `Documents > PCSX2 > textures > SLUS-20967`
-    - You should see folder `dumps` and `replacements`
-    - Put the `main.py` file next to those folders
-- Open `main.py` with Notepad or any text editor
-- Search for `SOURCE_PATH` and put the path of the folder where your texture dump is, in between the ""
-    - In this case, it can be something like `"C:\Users\XP\Documents\PCSX2\textures\SLUS-20967\dumps"`
-    - **NOTE** - Make sure to change the `\` in between the path to the `/`, so it would look like `"C:/Users/XP/Documents/PCSX2/textures/SLUS-20967/dumps"`
-- Search for `FINAL_PATH` and put the path of the replacements folder between ""
-    - So in this case, something like `"C:\Users\XP\Documents\PCSX2\textures\SLUS-20967\replacements"`
-    - **NOTE** - Make sure to change the `\` in between the path to the `/`, so it would look like `"C:/Users/XP/Documents/PCSX2/textures/SLUS-20967/replacemements"`
+- Download the textures you want to randomize
+    - Make sure the textures you want to randomize are in a separate folder to your `replacements` folder
+- Open the `main.py` using Python
+- It should bring out a GUI interface
+- In `Source Path` field, press `Choose` and select the directory where your textures are located
+- In `Target Path` field, press `Choose` and select the directory where you want to rename and move the textures to
 
 ## Seeds
-- To change the seed for the randomiser, you have two options
-    - The default seed, if left empty will be based on the timestamp of the system
-    - You can set a custom seed by searching for `SEED` in the code, and in between "", putting the seed
-- The seed will also be saved in a `seeds.txt` file
-- After everything is double checked, run the script using python
-    - You can do that by right clicking the `main.py` file, open with `python` and it should run the script
-    - You can also open command line and run `python main.py`
+- To change the seed for the randomizer, you have multiple options
+    - If you leave the `Seed` field empty, it will choose a random seed
+    - If you click `Random` next to the `Seed` field, it will give you a random seed
+    - You can input any text in the `Seed` field for a custom seed
+        - For example, `694202167`, or `Genius Turismo 4` or `IWinChicane2` or `House In The Mountains`
+- The seed will also be saved in a `seeds.txt` file, stored in the same directory as `main.py`, which can be accessed via `Seed History` button
+
+## Logging
+- You can enable logging of textures to see which textures is renamed to which
+- You can enable this by checking the `Make Logs` checkbox
+- The log will be saved in a `log.log` file, which will be stored alongside `main.py`
+- You can access logs by clicking on the `Log` button
 
 ## Filter List
-- To add exception / filter for text textures, just include the `filter.txt` file in the code
-- Make sure the file names in the `filter.txt` is separated by new lines
-- Delete all the extension from the files, like `.bmp` or `.dds` for the script to work
+- To add exception / filter for text textures, just include the `filter.txt` file in the same directory as the `main.py`
+- You can also create or access a brand new `filter.txt` file by clicking on the `Filter File` button
+    - It will open a Notepad file, where you can paste the texture names
+    - Make sure the file names in the `filter.txt` is separated by new lines
+    - Please only input the file names in the list, and not the entire paths for the files
+
+## Saving Configuration
+- You can save configuration for the setup by checking the `Save Configuration` checkbox
+- This will include
+    - Source Path
+    - Target Path
+    - Seed
+    - Data for both checkboxes
+- When you click `Randomize Textures` button and it performs everything successfully, it will store the configuration in a `config.json` file, located alongside the `main.py` file
+- Next time you load the program, it will load the configuration
+- To delete the configuration, just delete the `config.json`
+
+## About Button
+- There is a big "GitHub" button on top-right of the window
+- It will take you to this `readme.md` file
+
+## Randomize Texture Button
+- After everything is filled in, you can press the `Randomize Textures` button
+- It will open a new window, where it will show the current progress the renaming process has made
+- After the randomization process is done, you can see a temproary log, after which you can close the window
 
 ## PCSX2 Setup
 - After the script is finished, it should move the textures from the `dumps` folder to the `replacements` folder
 - To see the changes, in PCSX2
     - Go to `Settings > Grahpics > Texture Replacements > Load Textures`
-    - When you boot the game, you should see randomised textures
-- To rerun the script or rerandomise the content, move the textures back to `dumps` folder and follow the steps again
+    - When you boot the game, you should see randomized textures
+- To rerun the script or rerandomize the content, move the textures back to `dumps` folder and follow the steps again 
 
-## Log File
-A log file can also be generated when the textures are replaced, with a timestamp of when the script ran.
-This log can help recognise problematic textures. 
-It can be enabled by changing the `LOG` variable from `false` to `true` 
+# About
+This script was made by `real-xp`, better know as `XP`, along with help from friends. If you find any flaw, please tell me in the comment feature of gists.
