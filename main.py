@@ -301,6 +301,10 @@ def main_randomizer_task(config_data):
     LOG = make_log_bool.get()
     CONFIG = save_config_bool.get()
 
+    # removing \ to use / in path, if user didnt use choose button
+    SOURCE_PATH = SOURCE_PATH.replace("\\", "/")
+    FINAL_PATH = FINAL_PATH.replace("\\", "/")
+
     # testing if filelist can even be detected
     global file_list
     try:
