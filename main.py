@@ -23,6 +23,8 @@ FINAL_PATH = "./replacements/"                              # this is the path w
 LOG = False                                                 # set True or False if you want log.log file generated
 SEED_SAVE = False                                           # set True or False if you want seeds.txt generated
 FILTER_PATH = "./filter.txt"                                # This is the path for filter
+IMG_DUPE_PATH = ""                                          # This is the path for img dupe
+ING_DUPE_BOOL = False                                       # This is the bool for img dupe
 
 # variables for tkinter styling
 DEFAULT_FONT = ("Helvetica", 12)
@@ -215,11 +217,13 @@ def log_file(first_time, string_file):
 
 # It resets variables after replacement of all textures is done
 def reset_variables():
-    global SOURCE_PATH, FINAL_PATH, SEED, file_list
+    global SOURCE_PATH, FINAL_PATH, SEED, file_list, ING_DUPE_BOOL, IMG_DUPE_PATH
     try:
         SOURCE_PATH = source_text.set("")
         FINAL_PATH = target_text.set("")
         SEED = seed_text.set("")
+        ING_DUPE_BOOL = img_dupe_use_var.set(False)
+        IMG_DUPE_PATH = img_dupe_var.set("")
         file_list = []
     except:
         print("Error resetting vars")
@@ -260,7 +264,7 @@ def open_settings_window():
     filter_title = ttk.Label(settings_window, text="Filter", style="Subtitle.TLabel")
     filter_file_title = ttk.Entry(settings_window, state="disabled", textvariable=filter_var)
     filter_file_open = ttk.Button(settings_window, text="Open", command=lambda:open_notepad_window("FILTER"))
-    filter_file_choose = ttk.Button(settings_window, text="Choose", command=lambda: dialog_box_button_action(action="Filter", type_of_action="FILE"))
+    filter_file_choose = ttk.Button(settings_window, text="Choose", command=lambda: dialog_box_button_action(action="Filter", type_of_action="FILE", file_type=True))
 
     ttk.Separator(settings_window, orient=tk.HORIZONTAL).grid(row=9, column=0, columnspan=5, padx=DEFAULT_PADDING_X ,pady=(5,0), sticky=DEFAULT_STICKY)
 
@@ -347,12 +351,15 @@ def open_github_button_action():
     webbrowser.open("https://gist.github.com/real-xp/e9f5b9bb9f416043a9f7dc6e9ab3a7f6#file-readme-md")
 
 # Folder Picker dialog box for both Source And Target Folders
-def dialog_box_button_action(action, type_of_action):
-    global FILTER_PATH
+def dialog_box_button_action(action, type_of_action, file_type):
+    global FILTER_PATH, IMG_DUPE_PATH
     if (type_of_action == "FOLDER"):
         dialog_path = filedialog.askdirectory(title=f"Choose A {action} Path", initialdir="./")
     else:
-        dialog_path = filedialog.askopenfilename(title=f"Choose A {action} Path", initialdir="./", filetypes=[("Text File", "*.txt")])
+        if (file_type):
+            dialog_path = filedialog.askopenfilename(title=f"Choose A {action} Path", initialdir="./", filetypes=[("Text File", "*.txt")])
+        else:
+            dialog_path = filedialog.askopenfilename(title=f"Choose A {action} Path", initialdir="./")
     if (dialog_path != ""):
         if (action == "Source"):
             source_text.set(dialog_path)
@@ -361,6 +368,9 @@ def dialog_box_button_action(action, type_of_action):
         elif (action == "Filter"):
             FILTER_PATH = dialog_path
             filter_var.set(FILTER_PATH)
+        elif (action == "Image"):
+            IMG_DUPE_PATH = dialog_path
+            img_dupe_var.set(IMG_DUPE_PATH)
 
 # Opens Notepad When Button Pressed
 def open_notepad_window(type_of_action):
@@ -391,38 +401,95 @@ def delete_files(type_of_action):
 # randomise button pressed, does checks        
 def pressed_ranomise_button():
     # Multiple Checks
-    if (source_text.get() == ""):                           # sees if source entry is empty
+    if (source_text.get() == ""):                               # sees if source entry is empty
         showerror(title="Error",message="Source Path Empty" , detail="Source path is empty. Please fill in the path.")
         return
-
-    if (target_text.get() == ""):                           # sees if target entry is empty
-        showerror(title="Error",message="Target Path Empty" , detail="Target path is empty. Please fill in the path.")
-        return
     
-    if (target_text.get() == source_text.get()):            # sees if both are same path
-        showerror(title="Error",message="Source and Target Paths Conflict" , detail="Source and Target Paths cannot be same.")
-        return
-    
-    last_confirmation = askyesno(title="Are you sure?", message="Are you sure you want to continue? This WILL rename EVERY and ALL files in the SOURCE folder, regardless if they are images or not and move them to the TARGET Folder.")
-    if (last_confirmation):                                 # asks user one last time if they want to continue
-        main_randomizer_task()
+    if (img_dupe_use_var.get()):
+        message = "Are you sure you want to continue? This will take the image you provide, duplicate it and use names from SOURCE folder and put the duped images into TARGET folder. Please DO NOT ATTEMPT THIS WITH LOW DISK SPACE AND BIG IMAGE FILE AND TOO MANY SOURCE FILES AS SIZES FOR TARGET FOLDER WILL GET ABSURDLY LARGE!!!"
 
+        if (img_dupe_var.get() == ""):                          # sees if img_dupe entry is empty
+            showerror(title="Error",message="Image Dupe Path Empty" , detail="Image Dupe path is empty. Please fill in the path.")
+            return
+    else:
+        message = "Are you sure you want to continue? This WILL rename EVERY and ALL files in the SOURCE folder, regardless if they are images or not and move them to the TARGET folder."
+
+    if (target_text.get() == ""):                               # sees if target entry is empty
+            showerror(title="Error",message="Target Path Empty" , detail="Target path is empty. Please fill in the path.")
+            return
+    
+    if (target_text.get() == source_text.get()):                # sees if both are same path
+            showerror(title="Error",message="Source and Target Paths Conflict" , detail="Source and Target Paths cannot be same.")
+            return
+
+    last_confirmation = askyesno(title="Are you sure?", message=message)
+    if (last_confirmation):                                     # asks user one last time if they want to continue
+        main_randomizer_task(img_dupe_use_var.get())
+
+# set variables for use
 def set_variables():
-    global SOURCE_PATH, FINAL_PATH, SEED, LOG, SEED_SAVE, FILTER_PATH
+    global SOURCE_PATH, FINAL_PATH, SEED, LOG, SEED_SAVE, FILTER_PATH, IMG_DUPE_PATH, ING_DUPE_BOOL
     SOURCE_PATH = source_text.get()
     FINAL_PATH = target_text.get()
     SEED = seed_text.get()
     LOG = make_log_bool.get()
     SEED_SAVE = make_seed_bool.get()
     FILTER_PATH = filter_var.get()
+    IMG_DUPE_PATH = img_dupe_var.get()
+    ING_DUPE_BOOL = img_dupe_use_var.get()
+
+# sets hard links from original image
+def set_hard_links():
+    value_list_size = 0
+
+    if (not extension_file_array):
+        showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
+    else:
+        progress_log_window()
+        for extension, value_list in extension_file_array.items():  # loop through list, giving extension, value of extension in dict
+            value_list_size = len(value_list)
+
+            for index, file_name in enumerate(value_list):          # goes through shuffled list
+                try:
+                    final_file_name = value_list[index].rsplit('/', 1)[1]                                   # makes final file name
+
+                    renamed_file_path = f"{FINAL_PATH}/{final_file_name}{extension}"                        # makes replaced file path
+
+                    try:
+                        log_text = f"Hard Link from {IMG_DUPE_PATH}\nTO\n{renamed_file_path}"               # Logging text parser
+                        log_text_label.config(state="normal")                                               # sets state to normal so the logging window is user editable
+                        log_text_label.insert(tk.END, f"{log_text}\n\n")
+
+                        os.link(IMG_DUPE_PATH, renamed_file_path)
+
+                        # progress bar
+                        current_progress = (index / value_list_size)                                        # for progress bar percentage
+                        progress_bar['value'] = current_progress*100                                        # sets progress bar value
+                        progress_bar_var.set(f"{current_progress*100}% - {index+1} / {value_list_size}")    # progress text value
+                    except:
+                        print("Log window closed")
+
+                    if (LOG):                                               # checks if log making is on
+                        is_first_time = False                               # inits new first time var
+                        if (index == 0):                                    # sees if first time log
+                            is_first_time = True
+                        log_file(is_first_time, log_text)
+                except:
+                    showerror(title="Error Replacing", message="Files could not be replaced")
+
+        # all things done
+        log_text_label.config(state="disabled")                                         # sets status of log window diabled so user cant edit
+        progress_bar['value'] = 100                                                     # progress set to 100
+        progress_bar_var.set(f"100% - {value_list_size} / {value_list_size}")           # progress text set to max
+        showinfo(title="Successful", message="Files were successfully linked")          # Confirms all is done
+        reset_variables()                                                               # Resets all variables for next replacement
 
 # main randomizer body
-def main_randomizer_task():
+def main_randomizer_task(type_of_action):
     # Set variable values
     global SOURCE_PATH, FINAL_PATH, SEED, SEED_SAVE, FILTER_PATH
 
     set_variables()
-
     # removing \ to use / in path, if user didnt use choose button
     SOURCE_PATH = SOURCE_PATH.replace("\\", "/")
     FINAL_PATH = FINAL_PATH.replace("\\", "/")
@@ -441,19 +508,22 @@ def main_randomizer_task():
 
     # sees if file list is not empty
     if (file_list != []):
-        if (SEED == ''):                                            # checks if user left seed input field empty
-            SEED = str(random.randint(0, pow(2, 32)))               # chooses random int between 0 and 2**32
-        random.seed(SEED)                                           # sets the seed into random pkg
+        if (FILTER_PATH == ""):                                     # checks if filter path is not empty
+            FILTER_PATH = "./filter.txt"                            # puts default path link as safety check
 
-        if (SEED_SAVE):                                             # checks if seed saving is turned on
-            seed_txt(SEED)                                          # puts the seed into seed history file
-
-        if (FILTER_PATH == ""):
-            FILTER_PATH = "./filter.txt"
+        if (not type_of_action):
+            if (SEED == ''):                                        # checks if user left seed input field empty
+                SEED = str(random.randint(0, pow(2, 32)))           # chooses random int between 0 and 2**32
+            random.seed(SEED)                                       # sets the seed into random pkg
+            if (SEED_SAVE):                                         # checks if seed saving is turned on
+                seed_txt(SEED)                                      # puts the seed into seed history file
 
         if (check_path_validity() == 0):                            # checks if path is valid
             get_file_list()                                         # calls on file filter and file collector
-            rename_spec_ext()                                       # actual renaming function
+            if (not type_of_action):
+                rename_spec_ext()                                   # actual renaming function
+            else:
+                set_hard_links()
         else:
             showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
 
@@ -464,7 +534,7 @@ def main():
     # defining root window
     root = tk.Tk()
     root.title("PCSX2 Texture Randomizer")
-    root.geometry("900x360")
+    root.geometry("900x450")
     root.resizable(0,0)
 
     # defining styles for ttk widgets
@@ -475,11 +545,12 @@ def main():
     root.style.configure("Export.TButton", font = ("Helvetica", 16, "bold"))
     root.style.configure("Save.TButton", font=DEFAULT_FONT_LABEL)
     root.style.configure("Subtitle.TLabel", font=DEFAULT_FONT_LABEL_SUBTITLE)
+
     # defining column weight
     root.columnconfigure(index=1, weight=5)
 
     # VARIABLES
-    global source_text, target_text, seed_text, make_log_bool, save_config_bool, progress_bar_var, make_seed_bool, filter_var
+    global source_text, target_text, seed_text, make_log_bool, save_config_bool, progress_bar_var, make_seed_bool, filter_var, img_dupe_var, img_dupe_use_var
 
     source_text = tk.StringVar()                                # takes source string from input
     target_text = tk.StringVar()                                # takes target string from input
@@ -488,6 +559,8 @@ def main():
     make_seed_bool = tk.BooleanVar()                            # takes checkbox boolean value of seed
     progress_bar_var = tk.StringVar()                           # stores progress bar data for update purposes
     filter_var = tk.StringVar()                                 # stores filter_file path
+    img_dupe_var = tk.StringVar()                               # stores img_dupe path
+    img_dupe_use_var = tk.BooleanVar()                          # takes checkbox boolean value of img_dupe
 
     config_data = read_config_file()                            # reads the config file
     if (config_data != {}):
@@ -502,26 +575,25 @@ def main():
     # Mid level
     source_input_label = ttk.Label(root, text="Source Path")
     source_input = ttk.Entry(root, font=DEFAULT_FONT, textvariable=source_text)
-    source_dialogue = ttk.Button(root, text="Choose", compound=tk.LEFT, command=lambda: dialog_box_button_action(action="Source", type_of_action="FOLDER"))
+    source_dialogue = ttk.Button(root, text="Choose", command=lambda: dialog_box_button_action(action="Source", type_of_action="FOLDER", file_type=False))
 
     target_input_label = ttk.Label(root, text="Target Path")
     target_input = ttk.Entry(root, font=DEFAULT_FONT, textvariable=target_text)
-    target_dialogue = ttk.Button(root, text="Choose", compound=tk.LEFT, command=lambda: dialog_box_button_action(action="Target", type_of_action="FOLDER"))
+    target_dialogue = ttk.Button(root, text="Choose", command=lambda: dialog_box_button_action(action="Target", type_of_action="FOLDER", file_type=False))
 
     seed_input_label = ttk.Label(root, text="Seed")
     seed_input = ttk.Entry(root, font=DEFAULT_FONT, textvariable=seed_text)
-    seed_validate = ttk.Button(root, text="Random", compound=tk.LEFT, command=lambda: seed_text.set(str(random.randint(0, pow(2, 32)))))
+    seed_validate = ttk.Button(root, text="Random", command=lambda: seed_text.set(str(random.randint(0, pow(2, 32)))))
 
-    ttk.Separator(root, orient=tk.HORIZONTAL).grid(row=5, column=0, columnspan=5, pady=10, sticky=DEFAULT_STICKY)
+    img_dupe_input_label = ttk.Label(root, text="Image Dupe")
+    img_dupe_input = ttk.Entry(root, font=DEFAULT_FONT, textvariable=img_dupe_var)
+    img_dupe_use = ttk.Checkbutton(root, text="Use", variable=img_dupe_use_var)
+    img_dupe_choose = ttk.Button(root, text="Choose", command=lambda: dialog_box_button_action(action="Image", type_of_action="FILE", file_type=False))
 
-    # Bottom Level
-    button_frame = ttk.Frame(root)
-    button_frame.columnconfigure(index=1, weight=5)
-    button_frame_left = ttk.Frame(button_frame)
-    button_frame_right = ttk.Frame(button_frame)
+    ttk.Separator(root, orient=tk.HORIZONTAL).grid(row=6, column=0, columnspan=5, pady=10, sticky=DEFAULT_STICKY)
 
     # Target Button
-    target_button = ttk.Button(root, text="RANDOMIZE TEXTURES", style="Export.TButton", compound=tk.LEFT, command=pressed_ranomise_button)
+    target_button = ttk.Button(root, text="RANDOMIZE TEXTURES", style="Export.TButton", command=pressed_ranomise_button)
 
     # PLACING ALL ELEMENTS DOWN
    
@@ -531,20 +603,21 @@ def main():
    
    # Mid Bar
     source_input_label.grid(row=2, column=0, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y, sticky='w')
-    source_input.grid(row=2, column=1, columnspan=1, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y, sticky=DEFAULT_STICKY)
-    source_dialogue.grid(row=2, column=2, columnspan=3, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y, sticky=DEFAULT_STICKY)
+    source_input.grid(row=2, column=1, columnspan=2, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y, sticky=DEFAULT_STICKY)
+    source_dialogue.grid(row=2, column=3, columnspan=1, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y, sticky=DEFAULT_STICKY)
 
     target_input_label.grid(row=3, column=0, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y, sticky='w')
-    target_input.grid(row=3, column=1, columnspan=1, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y, sticky=DEFAULT_STICKY)
-    target_dialogue.grid(row=3, column=2, columnspan=3, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y, sticky=DEFAULT_STICKY)
+    target_input.grid(row=3, column=1, columnspan=2, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y, sticky=DEFAULT_STICKY)
+    target_dialogue.grid(row=3, column=3, columnspan=1, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y, sticky=DEFAULT_STICKY)
 
     seed_input_label.grid(row=4, column=0, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y, sticky='w')
-    seed_input.grid(row=4, column=1, columnspan=1, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y, sticky=DEFAULT_STICKY)
-    seed_validate.grid(row=4, column=2, columnspan=3, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y, sticky=DEFAULT_STICKY)
+    seed_input.grid(row=4, column=1, columnspan=2, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y, sticky=DEFAULT_STICKY)
+    seed_validate.grid(row=4, column=3, columnspan=1, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y, sticky=DEFAULT_STICKY)
 
-    button_frame.grid(row=6, column=0, columnspan=5, sticky=DEFAULT_STICKY)
-    button_frame_left.grid(row=0, column=0, columnspan=2, sticky=DEFAULT_STICKY)
-    button_frame_right.grid(row=0, column=2, columnspan=2, sticky=DEFAULT_STICKY)
+    img_dupe_input_label.grid(row=5, column=0, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y, sticky='w')
+    img_dupe_input.grid(row=5, column=1, columnspan=1, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y, sticky=DEFAULT_STICKY)
+    img_dupe_use.grid(row=5, column=2, columnspan=1, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y, sticky=DEFAULT_STICKY)
+    img_dupe_choose.grid(row=5, column=3, columnspan=1, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y, sticky=DEFAULT_STICKY)
 
     target_button.grid(row=7, column=0, columnspan=5, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y, ipadx=25, ipady=10, sticky=DEFAULT_STICKY)
 
