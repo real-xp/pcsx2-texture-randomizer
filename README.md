@@ -28,33 +28,43 @@ To use this script, follow the steps
         - For example, `694202167`, or `Genius Turismo 4` or `IWinChicane2` or `House In The Mountains`
 - The seed will also be saved in a `seeds.txt` file, stored in the same directory as `main.py`, which can be accessed via `Seed History` button
 
-## Logging
+## Settings
+- You can see all the settings by pressing the `Settings` button on the top right of the main window
+
+### Logging
 - You can enable logging of textures to see which textures is renamed to which
 - You can enable this by checking the `Make Logs` checkbox
 - The log will be saved in a `log.log` file, which will be stored alongside `main.py`
-- You can access logs by clicking on the `Log` button
+- You can access logs by clicking on the `Open` button
+- You can delete logs by pressing `Delete` button
 
-## Filter List
+### Filter List
 - To add exception / filter for text textures, just include the `filter.txt` file in the same directory as the `main.py`
-- You can also create or access a brand new `filter.txt` file by clicking on the `Filter File` button
+- You can also choose your own filter file or create one by pressing `Choose` or `Open` in the `Filter` section of `Settings`
     - It will open a Notepad file, where you can paste the texture names
     - Make sure the file names in the `filter.txt` is separated by new lines
     - Please only input the file names in the list, and not the entire paths for the files
 
-## Saving Configuration
-- You can save configuration for the setup by checking the `Save Configuration` checkbox
+### Saving Settings
+- You can save settings for the setup by checking the `Save Settings` button
 - This will include
     - Source Path
     - Target Path
+    - Filter Path
     - Seed
     - Data for both checkboxes
-- When you click `Randomize Textures` button and it performs everything successfully, it will store the configuration in a `config.json` file, located alongside the `main.py` file
-- Next time you load the program, it will load the configuration
-- To delete the configuration, just delete the `config.json`
+- When you click `Save Settings` button and it performs everything successfully, it will store the configuration in a `config.json` file, located alongside the `main.py` file
+- Next time you load the program, it will load the settings
+- To delete the configuration, just delete the `config.json`, or click on `Clear Settings`
 
-## About Button
-- There is a big "GitHub" button on top-right of the window
-- It will take you to this `readme.md` file
+### GitHub Button
+- There is a "GitHub" button to access this `readme.md` file
+
+## Image Dupe
+- This will allow you to set a single image as the texture for the entire game
+- Click on `Choose` in the `Image Dupe` section in main window, and choose your image file
+- Check the `Use` checkbox alongside it
+- It will create hard links for that image file in the `Target` folder
 
 ## Randomize Texture Button
 - After everything is filled in, you can press the `Randomize Textures` button
