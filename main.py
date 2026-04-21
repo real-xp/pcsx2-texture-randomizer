@@ -25,6 +25,7 @@ LOG = False                                                 # set True or False 
 SEED_SAVE = False                                           # set True or False if you want seeds.txt generated
 FILTER_PATH = "./filter.txt"                                # This is the path for filter
 IMG_DUPE_PATH = ""                                          # This is the path for img dupe
+IMG_DUPE_ARRAY_MAP = {}                                      # This is the array for img dupe paths, key = img_path, value = number of times it is being used
 ING_DUPE_BOOL = False                                       # This is the bool for img dupe
 HARD_LINK_LIMIT = 1023                                      # Limit for hard links per file
 
@@ -305,6 +306,8 @@ def open_github_button_action():
     webbrowser.open("https://gist.github.com/real-xp/e9f5b9bb9f416043a9f7dc6e9ab3a7f6#file-readme-md")
 
     # Folder Picker dialog box for both Source And Target Folders
+
+# dialog box action for folders, and 
 def dialog_box_button_action(action, type_of_action, file_type):
     global FILTER_PATH, IMG_DUPE_PATH
     if (type_of_action == "FOLDER"):
@@ -313,7 +316,7 @@ def dialog_box_button_action(action, type_of_action, file_type):
         if (file_type):
             dialog_path = filedialog.askopenfilename(title=f"Choose A {action} Path", initialdir="./", filetypes=[("Text File", "*.txt")])
         else:
-            dialog_path = filedialog.askopenfilename(title=f"Choose A {action} Path", initialdir="./")
+            dialog_path = filedialog.askopenfile(title=f"Choose A {action} Path", initialdir="./")
     if (dialog_path != ""):
         if (action == "Source"):
             source_text.set(dialog_path)
@@ -325,6 +328,11 @@ def dialog_box_button_action(action, type_of_action, file_type):
         elif (action == "Image"):
             IMG_DUPE_PATH = dialog_path
             img_dupe_var.set(IMG_DUPE_PATH)
+
+# def dialog_box_multi_select_img_dupe():
+#     global IMG_DUPE_ARRAY_MAP
+#     dialog_path_array = filedialog.askopenfilenames(title=f"Choose Images", initialdir="./", filetypes=[("PNG", "*.png"), ("JPG", "*.jpg"), ("JPEG", "*.jpeg"), ("DDS", "*.dds"), ("BMP", "*.bmp")])
+#     if (dialog_path_array != []):
 
 # Opens Notepad When Button Pressed
 def open_notepad_window(type_of_action):
@@ -353,6 +361,8 @@ def delete_files(type_of_action):
         showerror(title="Error", message="Some kind of error occured while deleting.")
 
         # set variables for use
+
+# sets variables
 def set_variables():
     global SOURCE_PATH, FINAL_PATH, SEED, LOG, SEED_SAVE, FILTER_PATH, IMG_DUPE_PATH, ING_DUPE_BOOL
     SOURCE_PATH = source_text.get()
@@ -365,6 +375,8 @@ def set_variables():
     ING_DUPE_BOOL = img_dupe_use_var.get()
 
     # main randomizer body
+
+# main place where randomisation initially passes checks
 def main_randomizer_task(type_of_action):
     # Set variable values
     global SOURCE_PATH, FINAL_PATH, SEED, SEED_SAVE, FILTER_PATH
@@ -403,6 +415,14 @@ def main_randomizer_task(type_of_action):
             if (not type_of_action):
                 rename_spec_ext()                                   # actual renaming function
             else:
+                if (not askyesno(title="Are You SURE?", message="This method invloves making Hard Links from the image file you provided and make thousands of linked files. This approach uses less storage than copying, but has a lot of limitations. Do you still want to continue?")):
+                    return
+                if (not askyesno(title="Are You REALLY SURE?", message="As windows puts a limit of 1024 hard links including original image file, this program will create multiple temproary files in case of thousands of files. There are more limitations. Do you want to still continue?")):
+                    return
+                if (not askyesno(title="Are You REALLY REALLY SURE?", message="Hard Links are also not possible on a USB Stick or a partition of a drive formatted with FAT32. This means if your drive is FAT32, please do not continue. Do you still wish to continue")):
+                    return
+                if (not askyesno(title="Are You REALLY REALLY REALLY SURE?", message="If you have done this process before, and deleted the linked files, but they are still in recycling bin, PLEASE DELETE THOSE FILES AS THEY STILL COUNT AS HARD LINKS AND COUNT TOWARDS THE ORIGINAL IMAGE LIMIT. IF YOU DONT DELETE, THE PROGRAM WILL CRASH AND WILL NOT GENERATE IMAGES. Do you still wish to continue")):
+                    return
                 set_hard_links()
         else:
             showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
@@ -419,6 +439,7 @@ def change_text_to_dupe():
 #                   TKINTER WINDOW SETTINGS
 # ------------------------------------------------------------
 
+# opens settings window
 def open_settings_window():
     settings_window = tk.Toplevel(root)
     settings_window.title("Settings")
@@ -510,7 +531,7 @@ def pressed_ranomise_button():
         return
     
     if (img_dupe_use_var.get()):
-        message = "Are you sure you want to continue? This will take the image you provide, duplicate it and use names from SOURCE folder and put the duped images into TARGET folder. Please DO NOT ATTEMPT THIS WITH LOW DISK SPACE AND BIG IMAGE FILE AND TOO MANY SOURCE FILES AS SIZES FOR TARGET FOLDER WILL GET ABSURDLY LARGE!!!"
+        message = "Are you sure you want to continue? This will link the image you chose to multiple files with names from SOURCE folder and put them in TARGET folder"
 
         if (img_dupe_var.get() == ""):                          # sees if img_dupe entry is empty
             showerror(title="Error",message="Image Dupe Path Empty" , detail="Image Dupe path is empty. Please fill in the path.")
