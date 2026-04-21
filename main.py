@@ -104,53 +104,117 @@ def check_path_validity():
 
 # rename files of specific extension
 def rename_spec_ext():
-
-    value_list_size = 0
-
+    user_want_to_continue = False
     if (not extension_file_array):
         showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
     else:
-        progress_log_window()
-        for extension, value_list in extension_file_array.items():  # loop through list, giving extension, value of extension in dict
-            randomized_list = value_list.copy()                     # copy into randomized list
-            random.shuffle(randomized_list)                         # shuffles
-            value_list_size = len(value_list)
+        for extension, value_list in extension_file_array.items():                                          # loop through list, giving extension, value of extension in dict
+            randomized_list = value_list.copy()                                                             # copy into randomized list
+            random.shuffle(randomized_list)                                                                 # shuffles
 
-            for index, file_name in enumerate(value_list):          # goes through shuffled list
+            for index, file_name in enumerate(value_list):                                                  # goes through shuffled list
                 try:
                     final_file_name = randomized_list[index].rsplit('/', 1)[1]                              # makes final file name
 
                     original_file_path = f"{SOURCE_PATH}{file_name}{extension}"                             # makes original file path
                     renamed_file_path = f"{FINAL_PATH}/{final_file_name}{extension}"                        # makes replaced file path
 
-                    os.rename(original_file_path, renamed_file_path)                                        # actual renaming action
-
                     try:
-                        log_text = f"Renaming {original_file_path}\nTO\n{renamed_file_path}"                # Logging text parser
-                        log_text_label.config(state="normal")                                               # sets state to normal so the logging window is user editable
-                        log_text_label.insert(tk.END, f"{log_text}\n\n")
+                        os.rename(original_file_path, renamed_file_path)                                    # actual renaming action
+                    except IOError as error:
+                        print(error)
+                        if (not user_want_to_continue):
+                            showerror(title="Error Linking", message=error)
+                            user_want_to_continue = askyesno(title="Do you want to continue", message="Do you still want to ignore this error and continue processing? This can lead to unexpected results")
 
-                        # progress bar
-                        current_progress = (index / value_list_size)                                        # for progress bar percentage
-                        progress_bar['value'] = current_progress                                            # sets progress bar value
-                        progress_bar_var.set(f"{current_progress*100}% - {index+1} / {value_list_size}")    # progress text value
-                    except:
-                        print("Log window closed")
+                    log_text = f"Renaming {original_file_path}\nTO\n{renamed_file_path}\n"                  # Logging text parser
+                    print(log_text)
 
-                    if (LOG):                                               # checks if log making is on
-                        is_first_time = False                               # inits new first time var
-                        if (index == 0):                                    # sees if first time log
+                    if (LOG):                                                                               # checks if log making is on
+                        is_first_time = False                                                               # inits new first time var
+                        if (index == 0):                                                                    # sees if first time log
                             is_first_time = True
                         log_file(is_first_time, log_text)
 
                 except:
                     showerror(title="Error Replacing", message="Files could not be replaced")
+        showinfo(title="Successful", message="Files were successfully randomized")                          # Confirms all is done
+        reset_variables()                                                                                   # Resets all variables for next replacement
+
+# sets hard links from original image
+def set_hard_links():
+    total_elements_size = 0
+    temp_file_array = []
+    temp_file_path = "./tempfiles"
+    current_index = 1
+    extension_img_dupe_file = IMG_DUPE_PATH.rsplit('.', 1)[1]
+    user_want_to_continue = False
+
+    if (not extension_file_array):
+        showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
+    else:
+        for values in extension_file_array.values():  # loop through list, giving extension, value of extension in dict
+            total_elements_size = total_elements_size + len(values)
+
+        duped_files = 0
+        dupes_required = int(total_elements_size / HARD_LINK_LIMIT)
+        if (dupes_required != 0):
+            try:
+                os.mkdir(temp_file_path)
+                file_temp_name = IMG_DUPE_PATH.rsplit('/', 1)[1]
+                while (duped_files <= dupes_required + 1):
+                    temp_file = shutil.copy(IMG_DUPE_PATH, f"{temp_file_path}/{duped_files}_{file_temp_name}")
+                    temp_file_array.append(temp_file)
+                    duped_files += 1
+            except:
+                print("failed to make temp folder")
+
+        duped_files = 0
+        dupe_image = IMG_DUPE_PATH
+
+        for extension, value_list in extension_file_array.items():  # loop through list, giving extension, value of extension in dict
+            for index, file_name in enumerate(value_list):          # goes through shuffled list
+                try:
+
+                    if (current_index % HARD_LINK_LIMIT == 0):
+                        dupe_image = temp_file_array[duped_files]
+                        # print(dupe_image)
+                        duped_files += 1
+                        
+                    final_file_name = value_list[index].rsplit('/', 1)[1]                                   # makes final file name
+                    renamed_file_path = f"{FINAL_PATH}/{final_file_name}.{extension_img_dupe_file}"         # makes replaced file path
+
+                    try:
+                        os.link(dupe_image, renamed_file_path)
+                    except IOError as error:
+                        print(error)
+                        if (not user_want_to_continue):
+                            showerror(title="Error Linking", message=error)
+                            user_want_to_continue = askyesno(title="Do you want to continue", message="Do you still want to ignore this error and continue processing? This can lead to unexpected results")
+
+                    log_text = f"Hard Link from {dupe_image}\nTO\n{renamed_file_path}\n"                      # Logging text parser
+                    print(log_text)
+
+                    try:
+                        if (LOG):                                                                           # checks if log making is on
+                            is_first_time = False                                                           # inits new first time var
+                            if (index == 0):                                                                # sees if first time log
+                                is_first_time = True
+                            log_file(is_first_time, log_text)
+                    except:
+                        print("Logging Issue Occured")
+
+                except:
+                    showerror(title="Error Replacing", message="Files could not be replaced")
+                current_index += 1
 
         # all things done
-        log_text_label.config(state="disabled")                                         # sets status of log window diabled so user cant edit
-        progress_bar['value'] = 100                                                     # progress set to 100
-        progress_bar_var.set(f"100% - {value_list_size} / {value_list_size}")           # progress text set to max
-        showinfo(title="Successful", message="Files were successfully randomized")      # Confirms all is done
+        try:
+            os.remove(temp_file_path)
+        except:
+            print("could not remove temp files")
+
+        showinfo(title="Successful", message="Files were successfully linked")          # Confirms all is done
         reset_variables()                                                               # Resets all variables for next replacement
 
 # just makes config file by dumping json to a .json file
@@ -231,6 +295,125 @@ def reset_variables():
         file_list = []
     except:
         print("Error resetting vars")
+
+# ------------------------------------------------------------
+#                   TKINTER CORE FUNCTIONS
+# ------------------------------------------------------------
+
+# opens my github tutorial readme.md
+def open_github_button_action():
+    webbrowser.open("https://gist.github.com/real-xp/e9f5b9bb9f416043a9f7dc6e9ab3a7f6#file-readme-md")
+
+    # Folder Picker dialog box for both Source And Target Folders
+def dialog_box_button_action(action, type_of_action, file_type):
+    global FILTER_PATH, IMG_DUPE_PATH
+    if (type_of_action == "FOLDER"):
+        dialog_path = filedialog.askdirectory(title=f"Choose A {action} Path", initialdir="./")
+    else:
+        if (file_type):
+            dialog_path = filedialog.askopenfilename(title=f"Choose A {action} Path", initialdir="./", filetypes=[("Text File", "*.txt")])
+        else:
+            dialog_path = filedialog.askopenfilename(title=f"Choose A {action} Path", initialdir="./")
+    if (dialog_path != ""):
+        if (action == "Source"):
+            source_text.set(dialog_path)
+        elif (action == "Target"):
+            target_text.set(dialog_path)
+        elif (action == "Filter"):
+            FILTER_PATH = dialog_path
+            filter_var.set(FILTER_PATH)
+        elif (action == "Image"):
+            IMG_DUPE_PATH = dialog_path
+            img_dupe_var.set(IMG_DUPE_PATH)
+
+# Opens Notepad When Button Pressed
+def open_notepad_window(type_of_action):
+    if (type_of_action == "LOG"):
+        subprocess.run(["notepad","./log.log"])
+    elif (type_of_action == "SEED"):
+        subprocess.run(["notepad","./seeds.txt"])
+    elif (type_of_action == "FILTER"):
+        subprocess.run(["notepad","./filter.txt"])
+    else:
+        showerror(title="Error", message="Some Kind Of Error Occured")
+
+# deletes file of log and seed
+def delete_files(type_of_action):
+    try:
+        if (type_of_action == "LOG"):
+            os.remove("./log.log")
+        elif (type_of_action == "SEED"):
+            os.remove("./seeds.txt")
+        elif (type_of_action == "CONFIG"):
+            os.remove("./config.json")
+        else:
+            showerror(title="Error", message="Some kind of error occured while deleting.")
+        showinfo(title="Successful", message="File was successfully deleted.")
+    except OSError:
+        showerror(title="Error", message="Some kind of error occured while deleting.")
+
+        # set variables for use
+def set_variables():
+    global SOURCE_PATH, FINAL_PATH, SEED, LOG, SEED_SAVE, FILTER_PATH, IMG_DUPE_PATH, ING_DUPE_BOOL
+    SOURCE_PATH = source_text.get()
+    FINAL_PATH = target_text.get()
+    SEED = seed_text.get()
+    LOG = make_log_bool.get()
+    SEED_SAVE = make_seed_bool.get()
+    FILTER_PATH = filter_var.get()
+    IMG_DUPE_PATH = img_dupe_var.get()
+    ING_DUPE_BOOL = img_dupe_use_var.get()
+
+    # main randomizer body
+def main_randomizer_task(type_of_action):
+    # Set variable values
+    global SOURCE_PATH, FINAL_PATH, SEED, SEED_SAVE, FILTER_PATH
+
+    set_variables()
+    # removing \ to use / in path, if user didnt use choose button
+    SOURCE_PATH = SOURCE_PATH.replace("\\", "/")
+    FINAL_PATH = FINAL_PATH.replace("\\", "/")
+
+    # testing if filelist can even be detected
+    global file_list
+    try:
+        for root, dirs, files in os.walk(SOURCE_PATH):              # parses and recursively gets all files in text
+            for n in files:
+                fp = os.path.join(root, n)
+                ft = fp.replace(SOURCE_PATH, "")
+                fl = ft.replace("\\", "/")
+                file_list.append(fl)
+    except:
+        showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
+
+    # sees if file list is not empty
+    if (file_list != []):
+        if (FILTER_PATH == ""):                                     # checks if filter path is not empty
+            FILTER_PATH = "./filter.txt"                            # puts default path link as safety check
+
+        if (not type_of_action):
+            if (SEED == ''):                                        # checks if user left seed input field empty
+                SEED = str(random.randint(0, pow(2, 32)))           # chooses random int between 0 and 2**32
+            random.seed(SEED)                                       # sets the seed into random pkg
+            if (SEED_SAVE):                                         # checks if seed saving is turned on
+                seed_txt(SEED)                                      # puts the seed into seed history file
+
+        if (check_path_validity() == 0):                            # checks if path is valid
+            get_file_list()                                         # calls on file filter and file collector
+            if (not type_of_action):
+                rename_spec_ext()                                   # actual renaming function
+            else:
+                set_hard_links()
+        else:
+            showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
+
+# change text to dump or randomize
+def change_text_to_dupe():
+    if (img_dupe_use_var.get()):
+        target_button.config(text="DUPLICATE TEXTURE")
+    else:
+        target_button.config(text="RANDOMIZE TEXTURES")
+
 
 # ------------------------------------------------------------
 #                   TKINTER WINDOW SETTINGS
@@ -319,89 +502,6 @@ def open_settings_window():
 #                   TKINTER WINDOW MAIN
 # ------------------------------------------------------------
 
-# Opens the log + progress bar window
-def progress_log_window():
-    global log_window
-
-    # makes new window for logging
-    log_window = tk.Toplevel(root)
-    log_window.title("Executing")
-    log_window.geometry("900x450")
-    log_window.resizable(0,0)
-
-    log_main_frame = tk.Frame(log_window)
-    log_main_frame.pack(fill='both', expand=True)
-
-    log_text_label_scroll = tk.Scrollbar(log_main_frame)
-    log_text_label_scroll.pack(fill="y", side='right')
-
-    global log_text_label, progress_bar
-
-    # main logger
-    log_text_label = tk.Text(log_main_frame, state="disabled")                  # initially disabled so user cannot edit anything
-    log_text_label.pack(expand=True, fill="both", side='left')  
-
-    # scrollbar behaviour
-    log_text_label['yscrollcommand']=log_text_label_scroll.set
-    log_text_label_scroll.config(command=log_text_label.yview)
-
-    progress_bar = ttk.Progressbar(log_window, orient='horizontal', mode='determinate')
-    progress_bar.pack(expand=True, fill='x', padx=5)
-    progress_bar_label = ttk.Label(log_window, text="0%", textvariable=progress_bar_var)
-    progress_bar_label.pack(expand=True, fill='x', padx=5)
-
-# opens my github tutorial readme.md
-def open_github_button_action():
-    webbrowser.open("https://gist.github.com/real-xp/e9f5b9bb9f416043a9f7dc6e9ab3a7f6#file-readme-md")
-
-# Folder Picker dialog box for both Source And Target Folders
-def dialog_box_button_action(action, type_of_action, file_type):
-    global FILTER_PATH, IMG_DUPE_PATH
-    if (type_of_action == "FOLDER"):
-        dialog_path = filedialog.askdirectory(title=f"Choose A {action} Path", initialdir="./")
-    else:
-        if (file_type):
-            dialog_path = filedialog.askopenfilename(title=f"Choose A {action} Path", initialdir="./", filetypes=[("Text File", "*.txt")])
-        else:
-            dialog_path = filedialog.askopenfilename(title=f"Choose A {action} Path", initialdir="./")
-    if (dialog_path != ""):
-        if (action == "Source"):
-            source_text.set(dialog_path)
-        elif (action == "Target"):
-            target_text.set(dialog_path)
-        elif (action == "Filter"):
-            FILTER_PATH = dialog_path
-            filter_var.set(FILTER_PATH)
-        elif (action == "Image"):
-            IMG_DUPE_PATH = dialog_path
-            img_dupe_var.set(IMG_DUPE_PATH)
-
-# Opens Notepad When Button Pressed
-def open_notepad_window(type_of_action):
-    if (type_of_action == "LOG"):
-        subprocess.run(["notepad","./log.log"])
-    elif (type_of_action == "SEED"):
-        subprocess.run(["notepad","./seeds.txt"])
-    elif (type_of_action == "FILTER"):
-        subprocess.run(["notepad","./filter.txt"])
-    else:
-        showerror(title="Error", message="Some Kind Of Error Occured")
-
-# deletes file of log and seed
-def delete_files(type_of_action):
-    try:
-        if (type_of_action == "LOG"):
-            os.remove("./log.log")
-        elif (type_of_action == "SEED"):
-            os.remove("./seeds.txt")
-        elif (type_of_action == "CONFIG"):
-            os.remove("./config.json")
-        else:
-            showerror(title="Error", message="Some kind of error occured while deleting.")
-        showinfo(title="Successful", message="File was successfully deleted.")
-    except OSError:
-        showerror(title="Error", message="Some kind of error occured while deleting.")
-
 # randomise button pressed, does checks        
 def pressed_ranomise_button():
     # Multiple Checks
@@ -429,158 +529,6 @@ def pressed_ranomise_button():
     last_confirmation = askyesno(title="Are you sure?", message=message)
     if (last_confirmation):                                     # asks user one last time if they want to continue
         main_randomizer_task(img_dupe_use_var.get())
-
-# set variables for use
-def set_variables():
-    global SOURCE_PATH, FINAL_PATH, SEED, LOG, SEED_SAVE, FILTER_PATH, IMG_DUPE_PATH, ING_DUPE_BOOL
-    SOURCE_PATH = source_text.get()
-    FINAL_PATH = target_text.get()
-    SEED = seed_text.get()
-    LOG = make_log_bool.get()
-    SEED_SAVE = make_seed_bool.get()
-    FILTER_PATH = filter_var.get()
-    IMG_DUPE_PATH = img_dupe_var.get()
-    ING_DUPE_BOOL = img_dupe_use_var.get()
-
-# sets hard links from original image
-def set_hard_links():
-    total_elements_size = 0
-    temp_file_array = []
-    temp_file_path = "./tempfiles"
-    current_index = 1
-    extension_img_dupe_file = IMG_DUPE_PATH.rsplit('.', 1)[1]
-    user_want_to_continue = False
-
-    if (not extension_file_array):
-        showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
-    else:
-        progress_log_window()
-
-        for values in extension_file_array.values():  # loop through list, giving extension, value of extension in dict
-            total_elements_size = total_elements_size + len(values)
-
-        duped_files = 0
-        dupes_required = int(total_elements_size / HARD_LINK_LIMIT)
-        if (dupes_required != 0):
-            try:
-                os.mkdir(temp_file_path)
-                file_temp_name = IMG_DUPE_PATH.rsplit('/', 1)[1]
-                while (duped_files <= dupes_required + 1):
-                    temp_file = shutil.copy(IMG_DUPE_PATH, f"{temp_file_path}/{duped_files}_{file_temp_name}")
-                    temp_file_array.append(temp_file)
-                    duped_files += 1
-            except:
-                print("failed to make temp folder")
-
-        duped_files = 0
-
-        dupe_image = IMG_DUPE_PATH
-
-        for extension, value_list in extension_file_array.items():  # loop through list, giving extension, value of extension in dict
-            for index, file_name in enumerate(value_list):          # goes through shuffled list
-                try:
-
-                    if (current_index % HARD_LINK_LIMIT == 0):
-                        dupe_image = temp_file_array[duped_files]
-                        # print(dupe_image)
-                        duped_files += 1
-                        
-                    final_file_name = value_list[index].rsplit('/', 1)[1]                                   # makes final file name
-                    renamed_file_path = f"{FINAL_PATH}/{final_file_name}.{extension_img_dupe_file}"         # makes replaced file path
-
-                    try:
-                        os.link(dupe_image, renamed_file_path)
-                    except IOError as error:
-                        print(error)
-                        if (not user_want_to_continue):
-                            showerror(title="Error Linking", message=error)
-                            user_want_to_continue = askyesno(title="Do you want to continue", message="Do you still want to ignore this error and continue processing? This can lead to unexpected results")
-
-                    try:
-
-                        log_text = f"Hard Link from {dupe_image}\nTO\n{renamed_file_path}"                  # Logging text parser
-                        log_text_label.config(state="normal")                                               # sets state to normal so the logging window is user editable
-                        log_text_label.insert(tk.END, f"{log_text}\n\n")
-
-                        # progress bar
-                        current_progress = (index / total_elements_size)                                        # for progress bar percentage
-                        progress_bar['value'] = current_progress*100                                        # sets progress bar value
-                        progress_bar_var.set(f"{current_progress*100}% - {index+1} / {total_elements_size}")    # progress text value
-
-                        if (LOG):                                                                           # checks if log making is on
-                            is_first_time = False                                                           # inits new first time var
-                            if (index == 0):                                                                # sees if first time log
-                                is_first_time = True
-                            log_file(is_first_time, log_text)
-                    except:
-                        print("Logging Issue Occured")
-
-                except:
-                    showerror(title="Error Replacing", message="Files could not be replaced")
-                current_index += 1
-
-        # all things done
-
-        try:
-            os.remove(temp_file_path)
-        except:
-            print("could not remove temp files")
-
-        log_text_label.config(state="disabled")                                         # sets status of log window diabled so user cant edit
-        progress_bar['value'] = 100                                                     # progress set to 100
-        progress_bar_var.set(f"100% - {total_elements_size} / {total_elements_size}")           # progress text set to max
-        showinfo(title="Successful", message="Files were successfully linked")          # Confirms all is done
-        reset_variables()                                                               # Resets all variables for next replacement
-
-# main randomizer body
-def main_randomizer_task(type_of_action):
-    # Set variable values
-    global SOURCE_PATH, FINAL_PATH, SEED, SEED_SAVE, FILTER_PATH
-
-    set_variables()
-    # removing \ to use / in path, if user didnt use choose button
-    SOURCE_PATH = SOURCE_PATH.replace("\\", "/")
-    FINAL_PATH = FINAL_PATH.replace("\\", "/")
-
-    # testing if filelist can even be detected
-    global file_list
-    try:
-        for root, dirs, files in os.walk(SOURCE_PATH):              # parses and recursively gets all files in text
-            for n in files:
-                fp = os.path.join(root, n)
-                ft = fp.replace(SOURCE_PATH, "")
-                fl = ft.replace("\\", "/")
-                file_list.append(fl)
-    except:
-        showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
-
-    # sees if file list is not empty
-    if (file_list != []):
-        if (FILTER_PATH == ""):                                     # checks if filter path is not empty
-            FILTER_PATH = "./filter.txt"                            # puts default path link as safety check
-
-        if (not type_of_action):
-            if (SEED == ''):                                        # checks if user left seed input field empty
-                SEED = str(random.randint(0, pow(2, 32)))           # chooses random int between 0 and 2**32
-            random.seed(SEED)                                       # sets the seed into random pkg
-            if (SEED_SAVE):                                         # checks if seed saving is turned on
-                seed_txt(SEED)                                      # puts the seed into seed history file
-
-        if (check_path_validity() == 0):                            # checks if path is valid
-            get_file_list()                                         # calls on file filter and file collector
-            if (not type_of_action):
-                rename_spec_ext()                                   # actual renaming function
-            else:
-                set_hard_links()
-        else:
-            showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
-
-# change text to dump or randomize
-def change_text_to_dupe():
-    if (img_dupe_use_var.get()):
-        target_button.config(text="DUPLICATE TEXTURE")
-    else:
-        target_button.config(text="RANDOMIZE TEXTURES")
 
 # main body of the program, this runs the tkinter window
 def main():
