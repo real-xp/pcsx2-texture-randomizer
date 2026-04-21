@@ -13,6 +13,7 @@ from tkinter.messagebox import showerror, showinfo, showwarning, askyesno
 import webbrowser
 import json
 import subprocess
+import shutil
 
 # core variables
 # DO NOT CHANGE ON YOUR OWN
@@ -25,6 +26,7 @@ SEED_SAVE = False                                           # set True or False 
 FILTER_PATH = "./filter.txt"                                # This is the path for filter
 IMG_DUPE_PATH = ""                                          # This is the path for img dupe
 ING_DUPE_BOOL = False                                       # This is the bool for img dupe
+HARD_LINK_LIMIT = 1023                                      # Limit for hard links per file
 
 # variables for tkinter styling
 DEFAULT_FONT = ("Helvetica", 12)
@@ -121,6 +123,8 @@ def rename_spec_ext():
                     original_file_path = f"{SOURCE_PATH}{file_name}{extension}"                             # makes original file path
                     renamed_file_path = f"{FINAL_PATH}/{final_file_name}{extension}"                        # makes replaced file path
 
+                    os.rename(original_file_path, renamed_file_path)                                        # actual renaming action
+
                     try:
                         log_text = f"Renaming {original_file_path}\nTO\n{renamed_file_path}"                # Logging text parser
                         log_text_label.config(state="normal")                                               # sets state to normal so the logging window is user editable
@@ -138,7 +142,7 @@ def rename_spec_ext():
                         if (index == 0):                                    # sees if first time log
                             is_first_time = True
                         log_file(is_first_time, log_text)
-                    os.rename(original_file_path, renamed_file_path)        # actual renaming action
+
                 except:
                     showerror(title="Error Replacing", message="Files could not be replaced")
 
@@ -440,47 +444,91 @@ def set_variables():
 
 # sets hard links from original image
 def set_hard_links():
-    value_list_size = 0
+    total_elements_size = 0
+    temp_file_array = []
+    temp_file_path = "./tempfiles"
+    current_index = 1
+    extension_img_dupe_file = IMG_DUPE_PATH.rsplit('.', 1)[1]
+    user_want_to_continue = False
 
     if (not extension_file_array):
         showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
     else:
         progress_log_window()
-        for extension, value_list in extension_file_array.items():  # loop through list, giving extension, value of extension in dict
-            value_list_size = len(value_list)
 
+        for values in extension_file_array.values():  # loop through list, giving extension, value of extension in dict
+            total_elements_size = total_elements_size + len(values)
+
+        duped_files = 0
+        dupes_required = int(total_elements_size / HARD_LINK_LIMIT)
+        if (dupes_required != 0):
+            try:
+                os.mkdir(temp_file_path)
+                file_temp_name = IMG_DUPE_PATH.rsplit('/', 1)[1]
+                while (duped_files <= dupes_required + 1):
+                    temp_file = shutil.copy(IMG_DUPE_PATH, f"{temp_file_path}/{duped_files}_{file_temp_name}")
+                    temp_file_array.append(temp_file)
+                    duped_files += 1
+            except:
+                print("failed to make temp folder")
+
+        duped_files = 0
+
+        dupe_image = IMG_DUPE_PATH
+
+        for extension, value_list in extension_file_array.items():  # loop through list, giving extension, value of extension in dict
             for index, file_name in enumerate(value_list):          # goes through shuffled list
                 try:
-                    final_file_name = value_list[index].rsplit('/', 1)[1]                                   # makes final file name
 
-                    renamed_file_path = f"{FINAL_PATH}/{final_file_name}{extension}"                        # makes replaced file path
+                    if (current_index % HARD_LINK_LIMIT == 0):
+                        dupe_image = temp_file_array[duped_files]
+                        # print(dupe_image)
+                        duped_files += 1
+                        
+                    final_file_name = value_list[index].rsplit('/', 1)[1]                                   # makes final file name
+                    renamed_file_path = f"{FINAL_PATH}/{final_file_name}.{extension_img_dupe_file}"         # makes replaced file path
 
                     try:
-                        log_text = f"Hard Link from {IMG_DUPE_PATH}\nTO\n{renamed_file_path}"               # Logging text parser
+                        os.link(dupe_image, renamed_file_path)
+                    except IOError as error:
+                        print(error)
+                        if (not user_want_to_continue):
+                            showerror(title="Error Linking", message=error)
+                            user_want_to_continue = askyesno(title="Do you want to continue", message="Do you still want to ignore this error and continue processing? This can lead to unexpected results")
+
+                    try:
+
+                        log_text = f"Hard Link from {dupe_image}\nTO\n{renamed_file_path}"                  # Logging text parser
                         log_text_label.config(state="normal")                                               # sets state to normal so the logging window is user editable
                         log_text_label.insert(tk.END, f"{log_text}\n\n")
 
-                        os.link(IMG_DUPE_PATH, renamed_file_path)
-
                         # progress bar
-                        current_progress = (index / value_list_size)                                        # for progress bar percentage
+                        current_progress = (index / total_elements_size)                                        # for progress bar percentage
                         progress_bar['value'] = current_progress*100                                        # sets progress bar value
-                        progress_bar_var.set(f"{current_progress*100}% - {index+1} / {value_list_size}")    # progress text value
-                    except:
-                        print("Log window closed")
+                        progress_bar_var.set(f"{current_progress*100}% - {index+1} / {total_elements_size}")    # progress text value
 
-                    if (LOG):                                               # checks if log making is on
-                        is_first_time = False                               # inits new first time var
-                        if (index == 0):                                    # sees if first time log
-                            is_first_time = True
-                        log_file(is_first_time, log_text)
+                        if (LOG):                                                                           # checks if log making is on
+                            is_first_time = False                                                           # inits new first time var
+                            if (index == 0):                                                                # sees if first time log
+                                is_first_time = True
+                            log_file(is_first_time, log_text)
+                    except:
+                        print("Logging Issue Occured")
+
                 except:
                     showerror(title="Error Replacing", message="Files could not be replaced")
+                current_index += 1
 
         # all things done
+
+        try:
+            os.remove(temp_file_path)
+        except:
+            print("could not remove temp files")
+
         log_text_label.config(state="disabled")                                         # sets status of log window diabled so user cant edit
         progress_bar['value'] = 100                                                     # progress set to 100
-        progress_bar_var.set(f"100% - {value_list_size} / {value_list_size}")           # progress text set to max
+        progress_bar_var.set(f"100% - {total_elements_size} / {total_elements_size}")           # progress text set to max
         showinfo(title="Successful", message="Files were successfully linked")          # Confirms all is done
         reset_variables()                                                               # Resets all variables for next replacement
 
@@ -527,6 +575,13 @@ def main_randomizer_task(type_of_action):
         else:
             showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
 
+# change text to dump or randomize
+def change_text_to_dupe():
+    if (img_dupe_use_var.get()):
+        target_button.config(text="DUPLICATE TEXTURE")
+    else:
+        target_button.config(text="RANDOMIZE TEXTURES")
+
 # main body of the program, this runs the tkinter window
 def main():
     global root
@@ -534,7 +589,7 @@ def main():
     # defining root window
     root = tk.Tk()
     root.title("PCSX2 Texture Randomizer")
-    root.geometry("900x450")
+    root.geometry("900x410")
     root.resizable(0,0)
 
     # defining styles for ttk widgets
@@ -587,12 +642,13 @@ def main():
 
     img_dupe_input_label = ttk.Label(root, text="Image Dupe")
     img_dupe_input = ttk.Entry(root, font=DEFAULT_FONT, textvariable=img_dupe_var)
-    img_dupe_use = ttk.Checkbutton(root, text="Use", variable=img_dupe_use_var)
+    img_dupe_use = ttk.Checkbutton(root, text="Use", variable=img_dupe_use_var, command=change_text_to_dupe)
     img_dupe_choose = ttk.Button(root, text="Choose", command=lambda: dialog_box_button_action(action="Image", type_of_action="FILE", file_type=False))
 
     ttk.Separator(root, orient=tk.HORIZONTAL).grid(row=6, column=0, columnspan=5, pady=10, sticky=DEFAULT_STICKY)
 
     # Target Button
+    global target_button
     target_button = ttk.Button(root, text="RANDOMIZE TEXTURES", style="Export.TButton", command=pressed_ranomise_button)
 
     # PLACING ALL ELEMENTS DOWN

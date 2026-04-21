@@ -25,7 +25,7 @@ To use this script, follow the steps
     - If you leave the `Seed` field empty, it will choose a random seed
     - If you click `Random` next to the `Seed` field, it will give you a random seed
     - You can input any text in the `Seed` field for a custom seed
-        - For example, `694202167`, or `Genius Turismo 4` or `IWinChicane2` or `House In The Mountains`
+        - For example, `694202167`, or `Genius Turismo 4` or `IWinChicane2` or `House In The Mountains that John built`
 - The seed will also be saved in a `seeds.txt` file, stored in the same directory as `main.py`, which can be accessed via `Seed History` button
 
 ## Settings
