@@ -61,15 +61,22 @@ To use this script, follow the steps
 - There is a "GitHub" button to access this `readme.md` file
 
 ## Image Dupe
-- This will allow you to set a single image as the texture for the entire game
-- Click on `Choose` in the `Image Dupe` section in main window, and choose your image file
+- This will allow you to set a single image or a pool of images as the texture for the entire game
+- Click on `Choose` in the `Image Dupe` section in main window, and choose your image file(s)
 - Check the `Use` checkbox alongside it
 - It will create hard links for that image file in the `Target` folder
+  
+### Warnings
+- Using Image dupe comes with a lot of risks
+- As Windows only allows 1024 Hard links per file, where 1 is for the original file itself, the duping function makes temproary files in a temproary folder, just to make more hard links
+- Hard links are not supported on a `FAT32` file system
+- Hard links are not supported across different partitions of a drive
+- Hard links, that might be in the `Recycling Bin` also count towards the limit. It is recommended you permanantly delete the files when deleting them
 
 ## Randomize Texture Button
-- After everything is filled in, you can press the `Randomize Textures` button
-- It will open a new window, where it will show the current progress the renaming process has made
-- After the randomization process is done, you can see a temproary log, after which you can close the window
+- After everything is filled in, you can press the `Randomize Textures` or `Duplicate Textures` button
+- In the command line, it will show you your progress
+- After the randomization process is done, you will get a message saying the same
 
 ## PCSX2 Setup
 - After the script is finished, it should move the textures from the `dumps` folder to the `replacements` folder
@@ -84,4 +91,4 @@ To use this script, follow the steps
     - Turn off `Load Textures` in PCSX2 Graphics Settings
 
 # About
-This script was made by `real-xp`, better know as `XP`, along with help from friends. If you find any flaw, please tell me in the comment feature of gists.
+This script was made by `real-xp`, better know as `XP`, along with help from friends. If you find any flaw or bugs, please tell me in the comment feature of gists.

@@ -485,7 +485,7 @@ def main_randomizer_task(is_image_duping_action : bool):
 # change text to dump or randomize
 def change_text_to_dupe():
     if (img_dupe_use_var.get()):
-        target_button.config(text="DUPLICATE TEXTURE")
+        target_button.config(text="DUPLICATE TEXTURES")
     else:
         target_button.config(text="RANDOMIZE TEXTURES")
 
@@ -542,6 +542,9 @@ def open_settings_window():
     ttk.Separator(settings_window, orient=tk.HORIZONTAL).grid(row=12, column=0, columnspan=5, padx=DEFAULT_PADDING_X ,pady=(5,0), sticky=DEFAULT_STICKY)
 
     # Config section
+
+    about_me = ttk.Label(settings_window, text="Made by realXP (XP)")
+
     config_file_clear = ttk.Button(settings_window, text="Clear Settings", command=lambda: delete_files("CONFIG"))
     config_file_save = ttk.Button(settings_window, text="Save Settings", command=make_config_file)
 
@@ -574,6 +577,7 @@ def open_settings_window():
     tutorial_file_open.grid(row=11, column=3, columnspan=1, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y, sticky=DEFAULT_STICKY)
 
     # Config Section
+    about_me.grid(row=13, column=0, columnspan=2, padx=DEFAULT_PADDING_X_SUBTITLE, pady=DEFAULT_PADDING_X_SUBTITLE, sticky=DEFAULT_STICKY)
     config_file_clear.grid(row=13, column=2, columnspan=1, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_X_SUBTITLE, sticky=DEFAULT_STICKY)
     config_file_save.grid(row=13, column=3, columnspan=1, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_X_SUBTITLE, sticky=DEFAULT_STICKY)
 
