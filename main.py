@@ -27,7 +27,7 @@ FILTER_PATH = "./filter.txt"                                # This is the path f
 IMG_DUPE_PATH = ""                                          # This is the path for img dupe
 IMG_DUPE_ARRAY = []                                         # This is the array for img dupe paths, key = img_path, value = number of times it is being used
 ING_DUPE_BOOL = False                                       # This is the bool for img dupe
-HARD_LINK_LIMIT = 1023                                      # Limit for hard links per file
+HARD_LINK_LIMIT = 1000                                         # Limit for hard links per file
 
 # variables for tkinter styling
 DEFAULT_FONT = ("Helvetica", 12)
@@ -144,12 +144,22 @@ def rename_spec_ext():
 
 # sets hard links from original image
 def set_hard_links():
+
     total_elements_size = 0
-    temp_file_array = []
     temp_file_path = "./tempfiles"
-    current_index = 1
-    extension_img_dupe_file = IMG_DUPE_PATH.rsplit('.', 1)[1]
     user_want_to_continue = False
+
+    # makes image pool with path : number of links
+    image_link_map = {}
+    for element in IMG_DUPE_ARRAY:
+        image_link_map.update({element: {
+            "dupes": [],
+            "current_hard_link": 1,
+            "current_dupe_file_index": 0
+        }})             # element - path of image
+
+    temp_file_array = []
+    extension_img_dupe_file = ""
 
     if (not extension_file_array):
         showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
@@ -157,57 +167,75 @@ def set_hard_links():
         for values in extension_file_array.values():  # loop through list, giving extension, value of extension in dict
             total_elements_size = total_elements_size + len(values)
 
-        duped_files = 0
-        dupes_required = int(total_elements_size / HARD_LINK_LIMIT)
-        if (dupes_required != 0):
+    # what it should do is
+    # choose a random file
+    # check if number of hard links is equal to limit
+        # if yes, make temp file, replace key of map with that file and value of that file back to 1
+        # if no, continue
+    # make a hard link
+    # append the hard link counter in the map
+
+    for extension, value_list in extension_file_array.items():  # loop through list, giving extension, value of extension in dict
+        for index, file_name in enumerate(value_list):          # goes through shuffled list
             try:
-                os.mkdir(temp_file_path)
-                file_temp_name = IMG_DUPE_PATH.rsplit('/', 1)[1]
-                while (duped_files <= dupes_required + 1):
-                    temp_file = shutil.copy(IMG_DUPE_PATH, f"{temp_file_path}/{duped_files}_{file_temp_name}")
-                    temp_file_array.append(temp_file)
-                    duped_files += 1
-            except:
-                print("failed to make temp folder")
+                # choose a random file from the map
 
-        duped_files = 0
-        dupe_image = IMG_DUPE_PATH
+                img_dupe_current_path, hard_link_current_limit = random.choice(list(image_link_map.items()))
 
-        for extension, value_list in extension_file_array.items():  # loop through list, giving extension, value of extension in dict
-            for index, file_name in enumerate(value_list):          # goes through shuffled list
-                try:
-
-                    if (current_index % HARD_LINK_LIMIT == 0):
-                        dupe_image = temp_file_array[duped_files]
-                        # print(dupe_image)
-                        duped_files += 1
-                        
-                    final_file_name = value_list[index].rsplit('/', 1)[1]                                   # makes final file name
-                    renamed_file_path = f"{FINAL_PATH}/{final_file_name}.{extension_img_dupe_file}"         # makes replaced file path
-
+                if (hard_link_current_limit['current_hard_link'] == HARD_LINK_LIMIT):
+                    # make a temp file
                     try:
-                        os.link(dupe_image, renamed_file_path)
+                        if (os.path.exists(temp_file_path)):
+                            file_temp_name = img_dupe_current_path.rsplit('/', 1)[1]
+                            temp_file = shutil.copy(img_dupe_current_path, f"{temp_file_path}/{hard_link_current_limit['current_dupe_file_index']}_{file_temp_name}")
+                            hard_link_current_limit['dupes'].append(temp_file)
+
+                            image_link_map.update({img_dupe_current_path: {
+                                "dupes": hard_link_current_limit['dupes'],
+                                "current_hard_link": 1,
+                                "current_dupe_file_index": hard_link_current_limit['current_dupe_file_index'] + 1
+                            }})
+                        else:
+                            try:
+                                os.mkdir(temp_file_path)
+                            except IOError as error:
+                                print("Couldn't make folder : " + error)
+
+                        print(image_link_map[img_dupe_current_path])
                     except IOError as error:
+                        print("failed to make temp folder")
                         print(error)
-                        if (not user_want_to_continue):
-                            showerror(title="Error Linking", message=error)
-                            user_want_to_continue = askyesno(title="Do you want to continue", message="Do you still want to ignore this error and continue processing? This can lead to unexpected results")
+                else:
+                    temp_file = img_dupe_current_path
 
-                    log_text = f"Hard Link from {dupe_image}\nTO\n{renamed_file_path}\n"                      # Logging text parser
-                    print(log_text)
+                extension_img_dupe_file = temp_file.rsplit('.', 1)[1]
+            
+                final_file_name = value_list[index].rsplit('/', 1)[1]                                   # makes final file name
+                renamed_file_path = f"{FINAL_PATH}/{final_file_name}.{extension_img_dupe_file}"         # makes replaced file path
 
-                    try:
-                        if (LOG):                                                                           # checks if log making is on
-                            is_first_time = False                                                           # inits new first time var
-                            if (index == 0):                                                                # sees if first time log
-                                is_first_time = True
-                            log_file(is_first_time, log_text)
-                    except:
-                        print("Logging Issue Occured")
+                try:
+                    os.link(temp_file, renamed_file_path)
+                except IOError as error:
+                    print(error)
+                    if (not user_want_to_continue):
+                        showerror(title="Error Linking", message=error)
+                        user_want_to_continue = askyesno(title="Do you want to continue", message="Do you still want to ignore this error and continue processing? This can lead to unexpected results")
 
+                log_text = f"Hard Link from {temp_file}\nTO\n{renamed_file_path}\n"                      # Logging text parser
+                print(log_text)
+
+                try:
+                    if (LOG):                                                                           # checks if log making is on
+                        is_first_time = False                                                           # inits new first time var
+                        if (index == 0):                                                                # sees if first time log
+                            is_first_time = True
+                        log_file(is_first_time, log_text)
                 except:
-                    showerror(title="Error Replacing", message="Files could not be replaced")
-                current_index += 1
+                    print("Logging Issue Occured")
+                
+                hard_link_current_limit['current_hard_link'] += 1
+            except:
+                showerror(title="Error Replacing", message="Files could not be replaced")
 
         # all things done
         try:
@@ -308,15 +336,12 @@ def open_github_button_action():
     # Folder Picker dialog box for both Source And Target Folders
 
 # dialog box action for folders, and 
-def dialog_box_button_action(action, type_of_action, file_type):
+def dialog_box_button_action(action, type_of_action):
     global FILTER_PATH, IMG_DUPE_PATH
     if (type_of_action == "FOLDER"):
         dialog_path = filedialog.askdirectory(title=f"Choose A {action} Path", initialdir="./")
     else:
-        if (file_type):
-            dialog_path = filedialog.askopenfilename(title=f"Choose A {action} Path", initialdir="./", filetypes=[("Text File", "*.txt")])
-        else:
-            dialog_path = filedialog.askopenfile(title=f"Choose A {action} Path", initialdir="./")
+        dialog_path = filedialog.askopenfilename(title=f"Choose A {action} Path", initialdir="./", filetypes=[("Text File", "*.txt")])
     if (dialog_path != ""):
         if (action == "Source"):
             source_text.set(dialog_path)
@@ -325,14 +350,11 @@ def dialog_box_button_action(action, type_of_action, file_type):
         elif (action == "Filter"):
             FILTER_PATH = dialog_path
             filter_var.set(FILTER_PATH)
-        elif (action == "Image"):
-            IMG_DUPE_PATH = dialog_path
-            img_dupe_var.set(IMG_DUPE_PATH)
 
 # select image pool function
 def dialog_box_multi_select_img_dupe():
     global IMG_DUPE_ARRAY
-    dialog_path_array = filedialog.askopenfilenames(title=f"Choose Images", initialdir="./", filetypes=[("PNG", "*.png"), ("JPG", "*.jpg"), ("JPEG", "*.jpeg"), ("DDS", "*.dds"), ("BMP", "*.bmp")])
+    dialog_path_array = filedialog.askopenfilenames(title=f"Choose Images", initialdir="./", filetypes=[("PNG", "*.png"), ("DDS", "*.dds"), ("BMP", "*.bmp"), ("All Files", "*")])
     if (dialog_path_array != []):
         IMG_DUPE_ARRAY = dialog_path_array
         img_dupe_input['values'] = IMG_DUPE_ARRAY
@@ -505,7 +527,7 @@ def open_settings_window():
     filter_title = ttk.Label(settings_window, text="Filter", style="Subtitle.TLabel")
     filter_file_title = ttk.Entry(settings_window, state="disabled", textvariable=filter_var)
     filter_file_open = ttk.Button(settings_window, text="Open", command=lambda:open_notepad_window("FILTER"))
-    filter_file_choose = ttk.Button(settings_window, text="Choose", command=lambda: dialog_box_button_action(action="Filter", type_of_action="FILE", file_type=True))
+    filter_file_choose = ttk.Button(settings_window, text="Choose", command=lambda: dialog_box_button_action(action="Filter", type_of_action="FILE"))
 
     ttk.Separator(settings_window, orient=tk.HORIZONTAL).grid(row=9, column=0, columnspan=5, padx=DEFAULT_PADDING_X ,pady=(5,0), sticky=DEFAULT_STICKY)
 
@@ -605,11 +627,11 @@ def main():
     # Mid level
     source_input_label = ttk.Label(root, text="Source Path")
     source_input = ttk.Entry(root, font=DEFAULT_FONT, textvariable=source_text)
-    source_dialogue = ttk.Button(root, text="Choose", command=lambda: dialog_box_button_action(action="Source", type_of_action="FOLDER", file_type=False))
+    source_dialogue = ttk.Button(root, text="Choose", command=lambda: dialog_box_button_action(action="Source", type_of_action="FOLDER"))
 
     target_input_label = ttk.Label(root, text="Target Path")
     target_input = ttk.Entry(root, font=DEFAULT_FONT, textvariable=target_text)
-    target_dialogue = ttk.Button(root, text="Choose", command=lambda: dialog_box_button_action(action="Target", type_of_action="FOLDER", file_type=False))
+    target_dialogue = ttk.Button(root, text="Choose", command=lambda: dialog_box_button_action(action="Target", type_of_action="FOLDER"))
 
     seed_input_label = ttk.Label(root, text="Seed")
     seed_input = ttk.Entry(root, font=DEFAULT_FONT, textvariable=seed_text)
