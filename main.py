@@ -25,7 +25,7 @@ LOG = False                                                 # set True or False 
 SEED_SAVE = False                                           # set True or False if you want seeds.txt generated
 FILTER_PATH = "./filter.txt"                                # This is the path for filter
 IMG_DUPE_PATH = ""                                          # This is the path for img dupe
-IMG_DUPE_ARRAY_MAP = {}                                      # This is the array for img dupe paths, key = img_path, value = number of times it is being used
+IMG_DUPE_ARRAY = []                                         # This is the array for img dupe paths, key = img_path, value = number of times it is being used
 ING_DUPE_BOOL = False                                       # This is the bool for img dupe
 HARD_LINK_LIMIT = 1023                                      # Limit for hard links per file
 
@@ -329,11 +329,14 @@ def dialog_box_button_action(action, type_of_action, file_type):
             IMG_DUPE_PATH = dialog_path
             img_dupe_var.set(IMG_DUPE_PATH)
 
-# def dialog_box_multi_select_img_dupe():
-#     global IMG_DUPE_ARRAY_MAP
-#     dialog_path_array = filedialog.askopenfilenames(title=f"Choose Images", initialdir="./", filetypes=[("PNG", "*.png"), ("JPG", "*.jpg"), ("JPEG", "*.jpeg"), ("DDS", "*.dds"), ("BMP", "*.bmp")])
-#     if (dialog_path_array != []):
-
+# select image pool function
+def dialog_box_multi_select_img_dupe():
+    global IMG_DUPE_ARRAY
+    dialog_path_array = filedialog.askopenfilenames(title=f"Choose Images", initialdir="./", filetypes=[("PNG", "*.png"), ("JPG", "*.jpg"), ("JPEG", "*.jpeg"), ("DDS", "*.dds"), ("BMP", "*.bmp")])
+    if (dialog_path_array != []):
+        IMG_DUPE_ARRAY = dialog_path_array
+        img_dupe_input['values'] = IMG_DUPE_ARRAY
+            
 # Opens Notepad When Button Pressed
 def open_notepad_window(type_of_action):
     if (type_of_action == "LOG"):
@@ -361,6 +364,34 @@ def delete_files(type_of_action):
         showerror(title="Error", message="Some kind of error occured while deleting.")
 
         # set variables for use
+
+# randomise button pressed, does checks        
+def pressed_ranomise_button():
+    # Multiple Checks
+    if (source_text.get() == ""):                               # sees if source entry is empty
+        showerror(title="Error",message="Source Path Empty" , detail="Source path is empty. Please fill in the path.")
+        return
+    
+    if (img_dupe_use_var.get()):
+        message = "Are you sure you want to continue? This will link the image you chose to multiple files with names from SOURCE folder and put them in TARGET folder"
+
+        if (img_dupe_var.get() == ""):                          # sees if img_dupe entry is empty
+            showerror(title="Error",message="Image Dupe Path Empty" , detail="Image Dupe path is empty. Please fill in the path.")
+            return
+    else:
+        message = "Are you sure you want to continue? This WILL rename EVERY and ALL files in the SOURCE folder, regardless if they are images or not and move them to the TARGET folder."
+
+    if (target_text.get() == ""):                               # sees if target entry is empty
+            showerror(title="Error",message="Target Path Empty" , detail="Target path is empty. Please fill in the path.")
+            return
+    
+    if (target_text.get() == source_text.get()):                # sees if both are same path
+            showerror(title="Error",message="Source and Target Paths Conflict" , detail="Source and Target Paths cannot be same.")
+            return
+
+    last_confirmation = askyesno(title="Are you sure?", message=message)
+    if (last_confirmation):                                     # asks user one last time if they want to continue
+        main_randomizer_task(img_dupe_use_var.get())
 
 # sets variables
 def set_variables():
@@ -403,12 +434,11 @@ def main_randomizer_task(type_of_action):
         if (FILTER_PATH == ""):                                     # checks if filter path is not empty
             FILTER_PATH = "./filter.txt"                            # puts default path link as safety check
 
-        if (not type_of_action):
-            if (SEED == ''):                                        # checks if user left seed input field empty
-                SEED = str(random.randint(0, pow(2, 32)))           # chooses random int between 0 and 2**32
-            random.seed(SEED)                                       # sets the seed into random pkg
-            if (SEED_SAVE):                                         # checks if seed saving is turned on
-                seed_txt(SEED)                                      # puts the seed into seed history file
+        if (SEED == ''):                                            # checks if user left seed input field empty
+            SEED = str(random.randint(0, pow(2, 32)))               # chooses random int between 0 and 2**32
+        random.seed(SEED)                                           # sets the seed into random pkg
+        if (SEED_SAVE):                                             # checks if seed saving is turned on
+            seed_txt(SEED)                                          # puts the seed into seed history file
 
         if (check_path_validity() == 0):                            # checks if path is valid
             get_file_list()                                         # calls on file filter and file collector
@@ -434,6 +464,9 @@ def change_text_to_dupe():
     else:
         target_button.config(text="RANDOMIZE TEXTURES")
 
+# revert combo box completely
+def revert_combo_box(event):
+    img_dupe_var.set("List of all images in pool")
 
 # ------------------------------------------------------------
 #                   TKINTER WINDOW SETTINGS
@@ -523,34 +556,6 @@ def open_settings_window():
 #                   TKINTER WINDOW MAIN
 # ------------------------------------------------------------
 
-# randomise button pressed, does checks        
-def pressed_ranomise_button():
-    # Multiple Checks
-    if (source_text.get() == ""):                               # sees if source entry is empty
-        showerror(title="Error",message="Source Path Empty" , detail="Source path is empty. Please fill in the path.")
-        return
-    
-    if (img_dupe_use_var.get()):
-        message = "Are you sure you want to continue? This will link the image you chose to multiple files with names from SOURCE folder and put them in TARGET folder"
-
-        if (img_dupe_var.get() == ""):                          # sees if img_dupe entry is empty
-            showerror(title="Error",message="Image Dupe Path Empty" , detail="Image Dupe path is empty. Please fill in the path.")
-            return
-    else:
-        message = "Are you sure you want to continue? This WILL rename EVERY and ALL files in the SOURCE folder, regardless if they are images or not and move them to the TARGET folder."
-
-    if (target_text.get() == ""):                               # sees if target entry is empty
-            showerror(title="Error",message="Target Path Empty" , detail="Target path is empty. Please fill in the path.")
-            return
-    
-    if (target_text.get() == source_text.get()):                # sees if both are same path
-            showerror(title="Error",message="Source and Target Paths Conflict" , detail="Source and Target Paths cannot be same.")
-            return
-
-    last_confirmation = askyesno(title="Are you sure?", message=message)
-    if (last_confirmation):                                     # asks user one last time if they want to continue
-        main_randomizer_task(img_dupe_use_var.get())
-
 # main body of the program, this runs the tkinter window
 def main():
     global root
@@ -584,6 +589,7 @@ def main():
     progress_bar_var = tk.StringVar()                           # stores progress bar data for update purposes
     filter_var = tk.StringVar()                                 # stores filter_file path
     img_dupe_var = tk.StringVar()                               # stores img_dupe path
+    img_dupe_var.set("List of all images in pool")
     img_dupe_use_var = tk.BooleanVar()                          # takes checkbox boolean value of img_dupe
 
     config_data = read_config_file()                            # reads the config file
@@ -609,10 +615,12 @@ def main():
     seed_input = ttk.Entry(root, font=DEFAULT_FONT, textvariable=seed_text)
     seed_validate = ttk.Button(root, text="Random", command=lambda: seed_text.set(str(random.randint(0, pow(2, 32)))))
 
+    global img_dupe_input
     img_dupe_input_label = ttk.Label(root, text="Image Dupe")
-    img_dupe_input = ttk.Entry(root, font=DEFAULT_FONT, textvariable=img_dupe_var)
+    img_dupe_input = ttk.Combobox(root, textvariable=img_dupe_var, state="readonly", font=DEFAULT_FONT)
+    img_dupe_input.bind("<<ComboboxSelected>>", revert_combo_box)
     img_dupe_use = ttk.Checkbutton(root, text="Use", variable=img_dupe_use_var, command=change_text_to_dupe)
-    img_dupe_choose = ttk.Button(root, text="Choose", command=lambda: dialog_box_button_action(action="Image", type_of_action="FILE", file_type=False))
+    img_dupe_choose = ttk.Button(root, text="Choose", command=dialog_box_multi_select_img_dupe)
 
     ttk.Separator(root, orient=tk.HORIZONTAL).grid(row=6, column=0, columnspan=5, pady=10, sticky=DEFAULT_STICKY)
 
