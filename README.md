@@ -1,4 +1,4 @@
-# PCSX2 Texture randomizer
+# PCSX2 Texture Randomizer
 This is a simple script I made to randomize texture dumps from PCSX2.
 Initially the script was made just for the purpose of randomising Enthusia (game) textures, but this can be used in many other games
 
