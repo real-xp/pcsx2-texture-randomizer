@@ -27,16 +27,15 @@ FILTER_PATH = "./filter.txt"                                # This is the path f
 IMG_DUPE_PATH = ""                                          # This is the path for img dupe
 IMG_DUPE_ARRAY = []                                         # This is the array for img dupe paths, key = img_path, value = number of times it is being used
 ING_DUPE_BOOL = False                                       # This is the bool for img dupe
-HARD_LINK_LIMIT = 1000                                         # Limit for hard links per file
+HARD_LINK_LIMIT = 1000                                      # Limit for hard links per file
 
 # variables for tkinter styling
 DEFAULT_FONT = ("Helvetica", 12)
-DEFAULT_FONT_NOTEPAD = ("Helvetica", 11)
 DEFAULT_FONT_LABEL = ("Helvetica", 12, "bold")
 DEFAULT_FONT_LABEL_SUBTITLE = ("Helvetica", 14, "bold")
 DEFAULT_PADDING_X = 10
 DEFAULT_PADDING_X_SUBTITLE = 20
-DEFAULT_PADDING_Y = 10
+DEFAULT_PADDING_Y = 5
 DEFAULT_STICKY = "EW" 
 
 file_list = []                                              # empty dict initialised before
@@ -50,9 +49,9 @@ extension_file_array = {}                                   # empty dict initial
 
 # this function does exactly that
 def get_file_list():
-    # filter files
 
-    # initialises an empty filter list
+    # This is the variable that stores the temproary data for the file names in the filter.txt file
+    # This should contain data like `91fea45880122683-9788124e782590b3-00005994`, it should remove extensions from the names
     filter_file_list = []
 
     try:
@@ -64,47 +63,47 @@ def get_file_list():
     except:
         showwarning(title="Filter List", message="Filter List Not Found", detail="Filter List was not found or does not exist.")
 
-    for file in file_list:                                                          # for loop to loop through files
+    for file in file_list:                                                      # for loop to loop through files
         try:
-            file_name, extension = os.path.splitext(file)                           # splits filename and extension
-
-            file_is_in_filter = False                                               # filter bool
-
-            for filter_element in filter_file_list:                                 # checks if filename is in filter
-                if filter_element in file_name:
-                    file_is_in_filter = True
-                    break
-
-            if (not file_is_in_filter):                                             # checks if file is in filter list
-                if (extension != ''):                                               # checks if somehow extension does not exist
-                    if (extension_file_array.get(extension) != None):               # checks if there is an existing key value entry in dictionary
-                        temp_list_array = extension_file_array[extension]           # gets the list of files of that particular extension type
-                        temp_list_array.append(file_name)                           # adds current iteration file name into that list
-                    else:
-                        extension_file_array.update({extension : [file_name]})      # makes a new key value pair and adds it to dict
+            file_name, extension = os.path.splitext(file)                       # splits filename and extension
         except:
             showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
             continue
 
+        file_is_in_filter = False                                               # filter bool
+        for filter_element in filter_file_list:                                 # checks if filename is in filter
+            if filter_element in file_name:
+                file_is_in_filter = True
+                break
+
+        if (file_is_in_filter):                                                 # checks if file is in filter list
+            continue
+
+        if (extension != ''):                                                   # checks if somehow extension does not exist
+            if (extension_file_array.get(extension) != None):                   # checks if there is an existing key value entry in dictionary
+                extension_file_array[extension].append(file_name)               # gets the list of files of that particular extension type and adds it
+            else:
+                extension_file_array.update({extension : [file_name]})          # makes a new key value pair and adds it to dict
+
 # checks validity of path, -1 = error, 0 = passed check
 def check_path_validity():
-    if (os.path.exists(SOURCE_PATH)):
-        if (os.path.exists(FINAL_PATH)):
-            return 0
-        else:
-            showinfo(title="Target Folder", message="Target Folder Not Found", detail="A new target folder will be made.")
-            try:
-                os.mkdir(FINAL_PATH)
-                return 0
-            except:
-                showerror(title="Target Folder", message="Target Folder Could Not Be Made")
-                return -1
-    else:
-        showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
+    if (not os.path.exists(SOURCE_PATH)):
         return -1
+    
+    if (not os.path.exists(FINAL_PATH)):
+        showinfo(title="Target Folder Not Found", message="Target Folder Not Found.", detail="A new target folder will be made.") 
+        try:
+            os.mkdir(FINAL_PATH)
+            return 0
+        except IOError as error:
+            showerror(title="Target Folder", message="Target Folder Could Not Be Made", detail=error)
+            return -1
+        
+    return 0
 
 # rename files of specific extension
 def rename_spec_ext():
+    # TODO: TRY TO IMPROVE, DO NOT BREAK
     user_want_to_continue = False
     if (not extension_file_array):
         showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
@@ -250,6 +249,7 @@ def set_hard_links():
 def make_config_file():
 
     set_variables()
+    
     data={
         "source_path" : SOURCE_PATH,
         "final_path": FINAL_PATH,
@@ -281,21 +281,20 @@ def read_config_file():
         return {}
 
 # This is to set the variables from config file, may throw error if config file is tampered with
-def set_config_variables(config_data):
-    global SOURCE_PATH, FINAL_PATH, SEED, LOG, CONFIG, FILTER_PATH, SEED_SAVE
+def set_config_variables(config_data : dict):
     try:
-        SOURCE_PATH = source_text.set(config_data["source_path"])
-        FINAL_PATH = target_text.set(config_data["final_path"])
-        SEED = seed_text.set(config_data["seed"])
-        LOG = make_log_bool.set(config_data["make_log_file"])
-        FILTER_PATH = filter_var.set(config_data["filter_file_path"])
-        SEED_SAVE = make_seed_bool.set(config_data["make_seeds_file"])
+        source_text.set(config_data["source_path"])
+        target_text.set(config_data["final_path"])
+        seed_text.set(config_data["seed"])
+        make_log_bool.set(config_data["make_log_file"])
+        filter_var.set(config_data["filter_file_path"])
+        make_seed_bool.set(config_data["make_seeds_file"])
     except:
         # TODO : Make a delete function for corrupt config file
         showerror(title="Config Error", message="Config File Could Not Be Loaded")
 
 # crypto miner, jk, this just notes the seeds in the seeds.txt file with timestamps
-def seed_txt(seed):
+def seed_txt(seed : str):
     try:   
         with open("./seeds.txt", 'a') as seeds_file:
             seeds_file.write(f"{TIMESTAMP} -> {seed}\n")
@@ -303,7 +302,7 @@ def seed_txt(seed):
         print("Error: The file 'seeds.json' was not found.")
 
 # Logging function, makes log.log file, accepts first_time, which sees if it is first time making log this session, and string_file, data for log
-def log_file(first_time, string_file):
+def log_file(first_time : bool, string_file : str):
     try:   
         with open("./log.log", 'a') as log_file:
             if (first_time):
@@ -314,13 +313,13 @@ def log_file(first_time, string_file):
 
 # It resets variables after replacement of all textures is done
 def reset_variables():
-    global SOURCE_PATH, FINAL_PATH, SEED, file_list, ING_DUPE_BOOL, IMG_DUPE_PATH
+    global file_list
     try:
-        SOURCE_PATH = source_text.set("")
-        FINAL_PATH = target_text.set("")
-        SEED = seed_text.set("")
-        ING_DUPE_BOOL = img_dupe_use_var.set(False)
-        IMG_DUPE_PATH = img_dupe_var.set("")
+        source_text.set("")
+        target_text.set("")
+        seed_text.set("")
+        img_dupe_use_var.set(False)
+        img_dupe_var.set("")
         file_list = []
     except:
         print("Error resetting vars")
@@ -336,12 +335,12 @@ def open_github_button_action():
     # Folder Picker dialog box for both Source And Target Folders
 
 # dialog box action for folders, and 
-def dialog_box_button_action(action, type_of_action):
+def dialog_box_button_action(action : str, type_of_action : str):
     global FILTER_PATH, IMG_DUPE_PATH
     if (type_of_action == "FOLDER"):
-        dialog_path = filedialog.askdirectory(title=f"Choose A {action} Path", initialdir="./")
+        dialog_path = filedialog.askdirectory(title=f"Choose {action} Path", initialdir="./")
     else:
-        dialog_path = filedialog.askopenfilename(title=f"Choose A {action} Path", initialdir="./", filetypes=[("Text File", "*.txt")])
+        dialog_path = filedialog.askopenfilename(title=f"Choose {action} Path", initialdir="./", filetypes=[("Text File", "*.txt")])
     if (dialog_path != ""):
         if (action == "Source"):
             source_text.set(dialog_path)
@@ -361,6 +360,7 @@ def dialog_box_multi_select_img_dupe():
             
 # Opens Notepad When Button Pressed
 def open_notepad_window(type_of_action):
+    # TODO : REMOVE HARDCODED PATHS
     if (type_of_action == "LOG"):
         subprocess.run(["notepad","./log.log"])
     elif (type_of_action == "SEED"):
@@ -372,6 +372,7 @@ def open_notepad_window(type_of_action):
 
 # deletes file of log and seed
 def delete_files(type_of_action):
+    # TODO : REMOVE HARDCODED PATHS
     try:
         if (type_of_action == "LOG"):
             os.remove("./log.log")
@@ -397,8 +398,8 @@ def pressed_ranomise_button():
     if (img_dupe_use_var.get()):
         message = "Are you sure you want to continue? This will link the image you chose to multiple files with names from SOURCE folder and put them in TARGET folder"
 
-        if (img_dupe_var.get() == ""):                          # sees if img_dupe entry is empty
-            showerror(title="Error",message="Image Dupe Path Empty" , detail="Image Dupe path is empty. Please fill in the path.")
+        if (IMG_DUPE_ARRAY == []):                              # sees if img_dupe entry is empty
+            showerror(title="Error",message="Image Dupe List Empty" , detail="Image Dupe list is empty. Please choose some image files.")
             return
     else:
         message = "Are you sure you want to continue? This WILL rename EVERY and ALL files in the SOURCE folder, regardless if they are images or not and move them to the TARGET folder."
@@ -430,17 +431,16 @@ def set_variables():
     # main randomizer body
 
 # main place where randomisation initially passes checks
-def main_randomizer_task(type_of_action):
+def main_randomizer_task(is_image_duping_action : bool):
     # Set variable values
-    global SOURCE_PATH, FINAL_PATH, SEED, SEED_SAVE, FILTER_PATH
-
+    global SOURCE_PATH, FINAL_PATH, SEED, FILTER_PATH, file_list
     set_variables()
+
     # removing \ to use / in path, if user didnt use choose button
     SOURCE_PATH = SOURCE_PATH.replace("\\", "/")
     FINAL_PATH = FINAL_PATH.replace("\\", "/")
 
     # testing if filelist can even be detected
-    global file_list
     try:
         for root, dirs, files in os.walk(SOURCE_PATH):              # parses and recursively gets all files in text
             for n in files:
@@ -450,6 +450,7 @@ def main_randomizer_task(type_of_action):
                 file_list.append(fl)
     except:
         showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
+        file_list = []
 
     # sees if file list is not empty
     if (file_list != []):
@@ -458,13 +459,15 @@ def main_randomizer_task(type_of_action):
 
         if (SEED == ''):                                            # checks if user left seed input field empty
             SEED = str(random.randint(0, pow(2, 32)))               # chooses random int between 0 and 2**32
+
         random.seed(SEED)                                           # sets the seed into random pkg
+
         if (SEED_SAVE):                                             # checks if seed saving is turned on
             seed_txt(SEED)                                          # puts the seed into seed history file
 
         if (check_path_validity() == 0):                            # checks if path is valid
             get_file_list()                                         # calls on file filter and file collector
-            if (not type_of_action):
+            if (not is_image_duping_action):
                 rename_spec_ext()                                   # actual renaming function
             else:
                 if (not askyesno(title="Are You SURE?", message="This method invloves making Hard Links from the image file you provided and make thousands of linked files. This approach uses less storage than copying, but has a lot of limitations. Do you still want to continue?")):
@@ -473,7 +476,7 @@ def main_randomizer_task(type_of_action):
                     return
                 if (not askyesno(title="Are You REALLY REALLY SURE?", message="Hard Links are also not possible on a USB Stick or a partition of a drive formatted with FAT32. This means if your drive is FAT32, please do not continue. Do you still wish to continue")):
                     return
-                if (not askyesno(title="Are You REALLY REALLY REALLY SURE?", message="If you have done this process before, and deleted the linked files, but they are still in recycling bin, PLEASE DELETE THOSE FILES AS THEY STILL COUNT AS HARD LINKS AND COUNT TOWARDS THE ORIGINAL IMAGE LIMIT. IF YOU DONT DELETE, THE PROGRAM WILL CRASH AND WILL NOT GENERATE IMAGES. Do you still wish to continue")):
+                if (not askyesno(title="Are You REALLY REALLY REALLY SURE?", message="If you have done this process before, and deleted the linked files, but they are still in recycling bin, PLEASE DELETE THOSE FILES AS THEY STILL COUNT AS HARD LINKS AND COUNT TOWARDS THE ORIGINAL IMAGE LIMIT. IF YOU DONT DELETE, THE PROGRAM WILL CRASH AND WILL NOT GENERATE IMAGES. Do you still wish to continue?")):
                     return
                 set_hard_links()
         else:
@@ -487,8 +490,8 @@ def change_text_to_dupe():
         target_button.config(text="RANDOMIZE TEXTURES")
 
 # revert combo box completely
-def revert_combo_box(event):
-    img_dupe_var.set("List of all images in pool")
+def revert_combo_box(event=""):
+    img_dupe_var.set("Click here to see all images in pool")
 
 # ------------------------------------------------------------
 #                   TKINTER WINDOW SETTINGS
@@ -498,8 +501,8 @@ def revert_combo_box(event):
 def open_settings_window():
     settings_window = tk.Toplevel(root)
     settings_window.title("Settings")
-    settings_window.geometry("600x450")
-    settings_window.resizable(0,0)
+    settings_window.geometry("600x440")
+    settings_window.resizable(False,False)
 
     # defining column weight
     settings_window.columnconfigure(index=0, weight=5)
@@ -549,26 +552,26 @@ def open_settings_window():
 
     # Seeds Section
     seed_title.grid(row=1, column=0, padx=DEFAULT_PADDING_X_SUBTITLE, pady=0, sticky='w')
-    seed_save_checkbox.grid(row=2, column=0, columnspan=2, padx=DEFAULT_PADDING_X_SUBTITLE, pady=DEFAULT_PADDING_Y-5, sticky=DEFAULT_STICKY)
-    seed_file_open.grid(row=2, column=2, columnspan=1, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y-5, sticky=DEFAULT_STICKY)
-    seed_file_delete.grid(row=2, column=3, columnspan=1, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y-5, sticky=DEFAULT_STICKY)
+    seed_save_checkbox.grid(row=2, column=0, columnspan=2, padx=DEFAULT_PADDING_X_SUBTITLE, pady=DEFAULT_PADDING_Y, sticky=DEFAULT_STICKY)
+    seed_file_open.grid(row=2, column=2, columnspan=1, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y, sticky=DEFAULT_STICKY)
+    seed_file_delete.grid(row=2, column=3, columnspan=1, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y, sticky=DEFAULT_STICKY)
    
     # Log Section
     logs_title.grid(row=4, column=0, padx=DEFAULT_PADDING_X_SUBTITLE, pady=(10,0), sticky='w')
-    logs_save_checkbox.grid(row=5, column=0, columnspan=2, padx=DEFAULT_PADDING_X_SUBTITLE, pady=DEFAULT_PADDING_Y-5, sticky=DEFAULT_STICKY)
-    logs_file_open.grid(row=5, column=2, columnspan=1, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y-5, sticky=DEFAULT_STICKY)
-    logs_file_delete.grid(row=5, column=3, columnspan=1, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y-5, sticky=DEFAULT_STICKY)
+    logs_save_checkbox.grid(row=5, column=0, columnspan=2, padx=DEFAULT_PADDING_X_SUBTITLE, pady=DEFAULT_PADDING_Y, sticky=DEFAULT_STICKY)
+    logs_file_open.grid(row=5, column=2, columnspan=1, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y, sticky=DEFAULT_STICKY)
+    logs_file_delete.grid(row=5, column=3, columnspan=1, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y, sticky=DEFAULT_STICKY)
 
     # Filter Section
     filter_title.grid(row=7, column=0, padx=DEFAULT_PADDING_X_SUBTITLE, pady=(10,0), sticky='w')
-    filter_file_title.grid(row=8, column=0, columnspan=2, padx=DEFAULT_PADDING_X_SUBTITLE, pady=DEFAULT_PADDING_Y-5, sticky=DEFAULT_STICKY)
-    filter_file_open.grid(row=8, column=2, columnspan=1, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y-5, sticky=DEFAULT_STICKY)
-    filter_file_choose.grid(row=8, column=3, columnspan=1, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y-5, sticky=DEFAULT_STICKY)
+    filter_file_title.grid(row=8, column=0, columnspan=2, padx=DEFAULT_PADDING_X_SUBTITLE, pady=DEFAULT_PADDING_Y, sticky=DEFAULT_STICKY)
+    filter_file_open.grid(row=8, column=2, columnspan=1, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y, sticky=DEFAULT_STICKY)
+    filter_file_choose.grid(row=8, column=3, columnspan=1, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y, sticky=DEFAULT_STICKY)
 
     # Tutorial Section
     tutorial_title.grid(row=10, column=0, padx=DEFAULT_PADDING_X_SUBTITLE, pady=(10,0), sticky='w')
-    tutorial_file_title.grid(row=11, column=0, columnspan=3, padx=DEFAULT_PADDING_X_SUBTITLE, pady=DEFAULT_PADDING_Y-5, sticky=DEFAULT_STICKY)
-    tutorial_file_open.grid(row=11, column=3, columnspan=1, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y-5, sticky=DEFAULT_STICKY)
+    tutorial_file_title.grid(row=11, column=0, columnspan=3, padx=DEFAULT_PADDING_X_SUBTITLE, pady=DEFAULT_PADDING_Y, sticky=DEFAULT_STICKY)
+    tutorial_file_open.grid(row=11, column=3, columnspan=1, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y, sticky=DEFAULT_STICKY)
 
     # Config Section
     config_file_clear.grid(row=13, column=2, columnspan=1, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_X_SUBTITLE, sticky=DEFAULT_STICKY)
@@ -585,8 +588,8 @@ def main():
     # defining root window
     root = tk.Tk()
     root.title("PCSX2 Texture Randomizer")
-    root.geometry("900x410")
-    root.resizable(0,0)
+    root.geometry("900x360")
+    root.resizable(False,False)
 
     # defining styles for ttk widgets
     root.style = ttk.Style(root)
@@ -611,7 +614,7 @@ def main():
     progress_bar_var = tk.StringVar()                           # stores progress bar data for update purposes
     filter_var = tk.StringVar()                                 # stores filter_file path
     img_dupe_var = tk.StringVar()                               # stores img_dupe path
-    img_dupe_var.set("List of all images in pool")
+    revert_combo_box()
     img_dupe_use_var = tk.BooleanVar()                          # takes checkbox boolean value of img_dupe
 
     config_data = read_config_file()                            # reads the config file
