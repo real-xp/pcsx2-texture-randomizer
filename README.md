@@ -91,4 +91,4 @@ To use this script, follow the steps
     - Turn off `Load Textures` in PCSX2 Graphics Settings
 
 # About
-This script was made by `real-xp`, better know as `XP`, along with help from friends. If you find any flaw or bugs, please tell me in the comment feature of gists.
+This script was made by `real-xp`, better know as `XP`, along with help from `Azullia`. If you find any flaw or bugs, please tell me in the comment feature of gists.
