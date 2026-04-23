@@ -27,9 +27,9 @@ SEED_SAVE_PATH = "./seeds.txt"                              # This is the path f
 LOG_PATH = "./log.log"                                      # This is the path for where log.log file is stored
 
 # PRINT ASCII COLOR CODES
-WARNING_CODE = '\033[93m'
-ERROR_CODE = '\033[91m'
-END_CODE = '\033[0m'
+WARNING_CODE = '\033[93m'                                   # Yellow for warning printing
+ERROR_CODE = '\033[91m'                                     # Red for warning printing
+END_CODE = '\033[0m'                                        # Ends the ascii
 
 # DO NOT CHANGE ON YOUR OWN
 TIMESTAMP = datetime.datetime.now(datetime.timezone.utc)    # generates a timestamp of when script is run
@@ -49,37 +49,34 @@ DEFAULT_PADDING_X_SUBTITLE = 20
 DEFAULT_PADDING_Y = 5
 DEFAULT_STICKY = "EW" 
 
-# This is the array that stores the file names including their paths
-# This is mainly for temproary reasons to check if the source folder has image files
-file_list = []                                              # empty dict initialised before
-
-# This is a dict / map for the files
-# The key is the extension for the file
-# The value is the path of the file of that particular extension
-# This can be used to filter out particular extensions too
-extension_file_dict = {}                                   # empty dict initialised before
-
 # ------------------------------------------------------------
 #                       CORE FUNCTION
 # ------------------------------------------------------------
 
 # this function does exactly that
-def get_file_list():
+def get_file_list(files : list):
 
     # This is the variable that stores the temproary data for the file names in the filter.txt file
     # This should contain data like `91fea45880122683-9788124e782590b3-00005994`, it should remove extensions from the names
     filter_file_list = []
 
+    # This is a dict / map for the files
+    # The key is the extension for the file
+    # The value is the path of the file of that particular extension
+    # This can be used to filter out particular extensions too
+    extension_file_dict = {}                                                    # empty dict initialised before
+
     try:
         with open("./filter.txt", 'r') as filter_file:             
-            for line in filter_file:                                                # parses lines from filter.txt to the array
-                line.strip()                                                        # removes newline character
+            for line in filter_file:                                            # parses lines from filter.txt to the array
+                line.strip()                                                    # removes newline character
                 if (line.find(".") != -1):
-                    filter_file_list.append(line.rsplit('.', 1)[0])                 # removes the extension
+                    filter_file_list.append(line.rsplit('.', 1)[0])             # removes the extension
     except:
         showwarning(title="Filter List", message="Filter List Not Found", detail="Filter List was not found or does not exist.")
 
-    for file in file_list:                                                      # for loop to loop through files
+    # Checks and splits filename and extension from the retrieved file_list
+    for file in files:                                                          # for loop to loop through files
         try:
             file_name, extension = os.path.splitext(file)                       # splits filename and extension
         except:
@@ -101,6 +98,8 @@ def get_file_list():
             else:
                 extension_file_dict.update({extension : [file_name]})          # makes a new key value pair and adds it to dict
 
+            return extension_file_dict
+
 # checks validity of path, -1 = error, 0 = passed check
 def check_path_validity():
     if (not os.path.exists(SOURCE_PATH)):
@@ -118,13 +117,13 @@ def check_path_validity():
     return 0
 
 # rename files of specific extension
-def rename_spec_ext():
+def rename_spec_ext(extension_file_map : dict):
     # TODO: TRY TO IMPROVE, DO NOT BREAK
     user_want_to_continue_processing = False
-    if (not extension_file_dict):
+    if (not extension_file_map):
         showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
     else:
-        for extension, value_list in extension_file_dict.items():                                          # loop through list, giving extension, value of extension in dict
+        for extension, value_list in extension_file_map.items():                                          # loop through list, giving extension, value of extension in dict
             randomized_list = value_list.copy()                                                             # copy into randomized list
             random.shuffle(randomized_list)                                                                 # shuffles
 
@@ -158,7 +157,7 @@ def rename_spec_ext():
         reset_variables()                                                                                   # Resets all variables for next replacement
 
 # sets hard links from original image
-def set_hard_links():
+def set_hard_links(extension_file_map : dict):
 
     total_elements_size = 0
     temp_file_path = "./tempfiles"
@@ -175,7 +174,7 @@ def set_hard_links():
 
     extension_img_dupe_file = ""
 
-    if (not extension_file_dict):
+    if (not extension_file_map):
         showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
     else:
 
@@ -187,7 +186,7 @@ def set_hard_links():
     # make a hard link
     # append the hard link counter in the map
 
-        for extension, value_list in extension_file_dict.items():  # loop through list, giving extension, value of extension in dict
+        for extension, value_list in extension_file_map.items():  # loop through list, giving extension, value of extension in dict
             for index, file_name in enumerate(value_list):          # goes through shuffled list
                 try:
                     # choose a random file from the map
@@ -324,14 +323,12 @@ def log_file(first_time : bool, string_file : str):
 
 # It resets variables after replacement of all textures is done
 def reset_variables():
-    global file_list
     try:
         source_text.set("")
         target_text.set("")
         seed_text.set("")
         img_dupe_use_var.set(False)
         img_dupe_var.set("")
-        file_list = []
     except:
         print(ERROR_CODE + "Error resetting variables" + END_CODE)
 
@@ -430,12 +427,15 @@ def set_variables():
 # main place where randomisation initially passes checks
 def main_randomizer_task(is_image_duping_action : bool):
     # Set variable values
-    global SOURCE_PATH, FINAL_PATH, SEED, FILTER_PATH, file_list
+    global SOURCE_PATH, FINAL_PATH, SEED, FILTER_PATH
     set_variables()
 
     # removing \ to use / in path, if user didnt use choose button
     SOURCE_PATH = SOURCE_PATH.replace("\\", "/")
     FINAL_PATH = FINAL_PATH.replace("\\", "/")
+
+    file_list = []                                                  # Array stores file list temproarily
+    extension_file_map = []                                         # This is the extension : file map
 
     # testing if filelist can even be detected
     try:
@@ -463,9 +463,9 @@ def main_randomizer_task(is_image_duping_action : bool):
             seed_txt(SEED)                                          # puts the seed into seed history file
 
         if (check_path_validity() == 0):                            # checks if path is valid
-            get_file_list()                                         # calls on file filter and file collector
+            extension_file_map = get_file_list(file_list)           # calls on file filter and file collector
             if (not is_image_duping_action):
-                rename_spec_ext()                                   # actual renaming function
+                rename_spec_ext(extension_file_map)                 # actual renaming function
             else:
                 if (not askyesno(title="Are You SURE?", message="This method invloves making Hard Links from the image file you provided and make thousands of linked files. This approach uses less storage than copying, but has a lot of limitations. Do you still want to continue?")):
                     return
@@ -475,7 +475,7 @@ def main_randomizer_task(is_image_duping_action : bool):
                     return
                 if (not askyesno(title="Are You REALLY REALLY REALLY SURE?", message="If you have done this process before, and deleted the linked files, but they are still in recycling bin, PLEASE DELETE THOSE FILES AS THEY STILL COUNT AS HARD LINKS AND COUNT TOWARDS THE ORIGINAL IMAGE LIMIT. IF YOU DONT DELETE, THE PROGRAM WILL CRASH AND WILL NOT GENERATE IMAGES. Do you still wish to continue?")):
                     return
-                set_hard_links()
+                set_hard_links(extension_file_map)                  # sets hard links, for image duping
         else:
             showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
 
