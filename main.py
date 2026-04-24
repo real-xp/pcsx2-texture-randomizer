@@ -14,7 +14,6 @@ import webbrowser
 import json
 import subprocess
 import shutil
-import logging
 
 # core variables
 
@@ -35,6 +34,7 @@ END_CODE = '\033[0m'                                        # Ends the ascii
 TIMESTAMP = datetime.datetime.now(datetime.timezone.utc)    # generates a timestamp of when script is run
 SEED = ""                                                   # PUT YOUR SEED HERE, wait that sounds wrong, i mean PUT THE SEED FOR THE RANDOMIZER HERE
 LOG = False                                                 # set True or False if you want log.log file generated
+TUTORIAL = True                                             # set True or False if you want tutorial shown
 SEED_SAVE = False                                           # set True or False if you want seeds.txt generated
 IMG_DUPE_ARRAY = []                                         # This is the array for img dupe paths, key = img_path, value = dict of values
 ING_DUPE_BOOL = False                                       # This is the bool for img dupe, checks if we want to dupe images or not
@@ -72,14 +72,16 @@ def get_file_list(files : list):
                 line.strip()                                                    # removes newline character
                 if (line.find(".") != -1):
                     filter_file_list.append(line.rsplit('.', 1)[0])             # removes the extension
-    except:
+    except Exception as error:
+        print(ERROR_CODE + "[ERROR]\tCould not detect filter file : " + error + END_CODE)
         showwarning(title="Filter List", message="Filter List Not Found", detail="Filter List was not found or does not exist.")
 
     # Checks and splits filename and extension from the retrieved file_list
     for file in files:                                                          # for loop to loop through files
         try:
             file_name, extension = os.path.splitext(file)                       # splits filename and extension
-        except:
+        except Exception as error:
+            print(ERROR_CODE + "[ERROR]\tCould not separate file name from extension : " + error + END_CODE)
             showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
             continue
 
@@ -97,7 +99,6 @@ def get_file_list(files : list):
                 extension_file_dict[extension].append(file_name)               # gets the list of files of that particular extension type and adds it
             else:
                 extension_file_dict.update({extension : [file_name]})          # makes a new key value pair and adds it to dict
-
             return extension_file_dict
 
 # checks validity of path, -1 = error, 0 = passed check
@@ -112,6 +113,7 @@ def check_path_validity():
             return 0
         except IOError as error:
             showerror(title="Target Folder", message="Target Folder Could Not Be Made", detail=error)
+            print(ERROR_CODE + "[ERROR]\tCould not make target folder : " + error + END_CODE)
             return -1
         
     return 0
@@ -137,7 +139,7 @@ def rename_spec_ext(extension_file_map : dict):
                     try:
                         os.rename(original_file_path, renamed_file_path)                                    # actual renaming action
                     except IOError as error:
-                        logging.error(error)
+                        print(ERROR_CODE + "[ERROR]\tCould not rename : " + error + END_CODE)
                         if (not user_want_to_continue_processing):
                             showerror(title="Error Linking", message=error)
                             user_want_to_continue_processing = askyesno(title="Do you want to continue", message="Do you still want to ignore this error and continue processing? This can lead to unexpected results")
@@ -151,9 +153,10 @@ def rename_spec_ext(extension_file_map : dict):
                             is_first_time = True
                         log_file(is_first_time, log_text)
 
-                except:
+                except Exception as error:
                     showerror(title="Error Replacing", message="Files could not be replaced")
-        showinfo(title="Successful", message="Files were successfully randomized")                          # Confirms all is done
+                    print(ERROR_CODE + "[ERROR]\tCould not perform task : " + error + END_CODE)
+        showinfo(title="Successful", message="Files were successfully randomized", detail="I wish you my randomized wishes for playing the game.")
         reset_variables()                                                                                   # Resets all variables for next replacement
 
 # sets hard links from original image
@@ -181,7 +184,7 @@ def set_hard_links(extension_file_map : dict):
     # what it should do is
     # choose a random file
     # check if number of hard links is equal to limit
-        # if yes, make temp file, replace key of map with that file and value of that file back to 1
+        # if yes, make temp file, append "dupes" array of map with that file and set hard link of that current file to 1
         # if no, continue
     # make a hard link
     # append the hard link counter in the map
@@ -209,9 +212,9 @@ def set_hard_links(extension_file_map : dict):
                                 try:
                                     os.mkdir(temp_file_path)
                                 except IOError as error:
-                                    print(ERROR_CODE + "Couldn't make folder : " + error + END_CODE)
+                                    print(ERROR_CODE + "[ERROR]\tCould not make temproary folder : " + error + END_CODE)
                         except IOError as error:
-                            print(ERROR_CODE + "Failed to make temp folder :" + error + END_CODE)
+                            print(ERROR_CODE + "[ERROR]\tCould not make temproary folder : " + error + END_CODE)
                     else:
                         temp_file = img_dupe_current_path
 
@@ -223,7 +226,7 @@ def set_hard_links(extension_file_map : dict):
                     try:
                         os.link(temp_file, renamed_file_path)
                     except IOError as error:
-                        print(ERROR_CODE + error + END_CODE)
+                        print(ERROR_CODE + "[ERROR]\tCould not make hard link : " + error + END_CODE)
                         if (not user_want_to_continue):
                             showerror(title="Error Linking", message=error)
                             user_want_to_continue = askyesno(title="Do you want to continue", message="Do you still want to ignore this error and continue processing? This can lead to unexpected results")
@@ -237,20 +240,21 @@ def set_hard_links(extension_file_map : dict):
                             if (index == 0):                                                                # sees if first time log
                                 is_first_time = True
                             log_file(is_first_time, log_text)
-                    except:
-                        print(WARNING_CODE + "Logging Issue Occured" + END_CODE)
+                    except Exception as error:
+                        print(WARNING_CODE + "[WARNING]\tLogging issue occured : " + error + END_CODE)
                     
                     hard_link_current_limit['current_hard_link'] += 1
-                except:
+                except Exception as error:
                     showerror(title="Error Replacing", message="Files could not be replaced")
+                    print(ERROR_CODE + "[ERROR]\tCould not perform task : " + error + END_CODE)
 
             # all things done
             try:
                 os.remove(temp_file_path)
-            except:
-                print(WARNING_CODE + "Could not remove temproary folder" + END_CODE)
+            except Exception as error:
+                print(ERROR_CODE + "[ERROR]\tCould not delete temp folder : " + error + END_CODE)
 
-            showinfo(title="Successful", message="Files were successfully linked")          # Confirms all is done
+            showinfo(title="Successful", message="Files were successfully linked", detail="I wish you my randomized wishes for playing the game.")
             reset_variables()                                                               # Resets all variables for next replacement
 
 # just makes config file by dumping json to a .json file
@@ -265,27 +269,28 @@ def make_config_file():
         "make_log_file": LOG,
         "make_seeds_file": SEED_SAVE,
         "filter_file_path": FILTER_PATH,
+        "show_tutorial": show_tutorial_bool.get()
     }
 
     try:   
         with open(CONFIG_PATH, 'w') as config_file:
             json.dump(data, config_file)
         showinfo(title="Config Saved", message="Config File Has Been Saved")
-    except FileNotFoundError:
-        print(ERROR_CODE + "Error: The file 'config.json' was not found." + END_CODE)
-    except json.JSONDecodeError:
-        print(WARNING_CODE + "Error: Failed to decode JSON from the file." + END_CODE)
+    except FileNotFoundError as error:
+        print(ERROR_CODE + "[ERROR]\tThe file 'config.json' was not found. " + error + END_CODE)
+    except json.JSONDecodeError as error:
+        print(WARNING_CODE + "[ERROR]\tFailed to decode JSON from the file. " + error + END_CODE)
 
 # reads config file, returns either json data, or empty
 def read_config_file():
     try:   
         with open(CONFIG_PATH, 'r') as config_file:
             return json.load(config_file)
-    except FileNotFoundError:
-        print(WARNING_CODE + "Error: The file 'config.json' was not found." + END_CODE)
+    except FileNotFoundError as error:
+        print(WARNING_CODE + "[WARNING]\tThe file 'config.json' was not found. " + error + END_CODE)
         return {}
-    except json.JSONDecodeError:
-        print(WARNING_CODE + "Error: Failed to decode JSON from the file." + END_CODE)
+    except json.JSONDecodeError as error:
+        print(WARNING_CODE + "[WARNING]\tFailed to decode JSON from the file. " + error + END_CODE)
         return {}
 
 # This is to set the variables from config file, may throw error if config file is tampered with
@@ -297,19 +302,20 @@ def set_config_variables(config_data : dict):
         make_log_bool.set(config_data["make_log_file"])
         filter_var.set(config_data["filter_file_path"])
         make_seed_bool.set(config_data["make_seeds_file"])
-    except:
+        show_tutorial_bool.set(config_data["show_tutorial"])
+    except Exception as error:
+        print(ERROR_CODE + "[ERROR]\tFailed to set configuration variables from config.json : " + error + END_CODE)
         showerror(title="Config Error", message="Config File Could Not Be Loaded")
-        if(askyesno(title="Delete config.json", message="Do you want to delete the corrupted config file?")):
+        if(askyesno(title="Delete config.json?", message="Do you want to delete the corrupted config file?")):
             delete_files(CONFIG_PATH)
-
 
 # crypto miner, jk, this just notes the seeds in the seeds.txt file with timestamps
 def seed_txt(seed : str):
     try:   
         with open(SEED_SAVE_PATH, 'a') as seeds_file:
             seeds_file.write(f"{TIMESTAMP} -> {seed}\n")
-    except FileNotFoundError:
-        print(ERROR_CODE + "Error: The file 'seeds.json' was not found." + END_CODE)
+    except FileNotFoundError as error:
+        print(ERROR_CODE + "[ERROR]\tThe file 'seeds.json' was not found. : " + error + END_CODE)
 
 # Logging function, makes log.log file, accepts first_time, which sees if it is first time making log this session, and string_file, data for log
 def log_file(first_time : bool, string_file : str):
@@ -318,19 +324,22 @@ def log_file(first_time : bool, string_file : str):
             if (first_time):
                 log_file.write(f"\n------{TIMESTAMP}------\n\n")
             log_file.write(f"{string_file}\n")
-    except FileNotFoundError:
-        print(ERROR_CODE + "Error: The file 'log.log' was not found." + END_CODE)
+    except FileNotFoundError as error:
+        print(ERROR_CODE + "[ERROR]\tThe file 'log.log' was not found. : " + error + END_CODE)
 
 # It resets variables after replacement of all textures is done
 def reset_variables():
+    global IMG_DUPE_ARRAY
     try:
         source_text.set("")
         target_text.set("")
         seed_text.set("")
         img_dupe_use_var.set(False)
         img_dupe_var.set("")
-    except:
-        print(ERROR_CODE + "Error resetting variables" + END_CODE)
+        IMG_DUPE_ARRAY = []
+        img_dupe_input['values'] = IMG_DUPE_ARRAY
+    except Exception as error:
+        print(ERROR_CODE + "[ERROR]\t Could not reset variables : " + error + END_CODE)
 
 # ------------------------------------------------------------
 #                   TKINTER CORE FUNCTIONS
@@ -340,9 +349,7 @@ def reset_variables():
 def open_github_button_action():
     webbrowser.open("https://gist.github.com/real-xp/e9f5b9bb9f416043a9f7dc6e9ab3a7f6#file-readme-md")
 
-    # Folder Picker dialog box for both Source And Target Folders
-
-# dialog box action for folders, and 
+# dialog box action for folders
 def dialog_box_button_action(action : str, type_of_action : str):
     global FILTER_PATH
     if (type_of_action == "FOLDER"):
@@ -370,7 +377,8 @@ def dialog_box_multi_select_img_dupe():
 def open_notepad_window(path):
     try:
         subprocess.run(["notepad",path])
-    except:
+    except Exception as error:
+        print(ERROR_CODE + "[ERROR]\tCould not open notepad : " + error + END_CODE)
         showerror(title="Error", message="Some Kind Of Error Occured")
 
 # deletes file of log and seed
@@ -378,9 +386,9 @@ def delete_files(path):
     try:
         os.remove(path)
         showinfo(title="Successful", message="File was successfully deleted.")
-    except OSError:
+    except Exception as error:
         showerror(title="Error", message="Some kind of error occured while deleting.")
-
+        print(ERROR_CODE + "[ERROR]\tCould not delete files : " + error + END_CODE)
         # set variables for use
 
 # randomise button pressed, does checks        
@@ -389,7 +397,6 @@ def pressed_ranomise_button():
     if (source_text.get() == ""):                               # sees if source entry is empty
         showerror(title="Error",message="Source Path Empty" , detail="Source path is empty. Please fill in the path.")
         return
-    
     if (img_dupe_use_var.get()):
         message = "Are you sure you want to continue? This will link the image you chose to multiple files with names from SOURCE folder and put them in TARGET folder"
 
@@ -398,22 +405,19 @@ def pressed_ranomise_button():
             return
     else:
         message = "Are you sure you want to continue? This WILL rename EVERY and ALL files in the SOURCE folder, regardless if they are images or not and move them to the TARGET folder."
-
     if (target_text.get() == ""):                               # sees if target entry is empty
             showerror(title="Error",message="Target Path Empty" , detail="Target path is empty. Please fill in the path.")
             return
-    
     if (target_text.get() == source_text.get()):                # sees if both are same path
             showerror(title="Error",message="Source and Target Paths Conflict" , detail="Source and Target Paths cannot be same.")
             return
-
     last_confirmation = askyesno(title="Are you sure?", message=message)
     if (last_confirmation):                                     # asks user one last time if they want to continue
         main_randomizer_task(img_dupe_use_var.get())
 
 # sets variables
 def set_variables():
-    global SOURCE_PATH, FINAL_PATH, SEED, LOG, SEED_SAVE, FILTER_PATH, ING_DUPE_BOOL
+    global SOURCE_PATH, FINAL_PATH, SEED, LOG, SEED_SAVE, FILTER_PATH, ING_DUPE_BOOL, TUTORIAL
     SOURCE_PATH = source_text.get()
     FINAL_PATH = target_text.get()
     SEED = seed_text.get()
@@ -421,8 +425,7 @@ def set_variables():
     SEED_SAVE = make_seed_bool.get()
     FILTER_PATH = filter_var.get()
     ING_DUPE_BOOL = img_dupe_use_var.get()
-
-    # main randomizer body
+    TUTORIAL = show_tutorial_bool.get()
 
 # main place where randomisation initially passes checks
 def main_randomizer_task(is_image_duping_action : bool):
@@ -445,7 +448,8 @@ def main_randomizer_task(is_image_duping_action : bool):
                 ft = fp.replace(SOURCE_PATH, "")
                 fl = ft.replace("\\", "/")
                 file_list.append(fl)
-    except:
+    except Exception as error:
+        print(ERROR_CODE + "[ERROR]\tCould not detect files : " + error + END_CODE)
         showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
         file_list = []
 
@@ -533,20 +537,18 @@ def open_settings_window():
 
     # Filter section
     tutorial_title = ttk.Label(settings_window, text="Tutorial", style="Subtitle.TLabel")
-    tutorial_file_title = ttk.Label(settings_window, text="To read tutorial, click here ->")
-    tutorial_file_open = ttk.Button(settings_window, text="Open GitHub", command=open_github_button_action)
+    tutorial_file_checkbox = ttk.Checkbutton(settings_window, text="Show tutorial on startup", variable=show_tutorial_bool)
+    tutorial_file_open = ttk.Button(settings_window, text="Open Tutorial", command=open_github_button_action)
 
     ttk.Separator(settings_window, orient=tk.HORIZONTAL).grid(row=12, column=0, columnspan=5, padx=DEFAULT_PADDING_X ,pady=(5,0), sticky=DEFAULT_STICKY)
 
     # Config section
-
     about_me = ttk.Label(settings_window, text="Made by realXP (XP)")
 
     config_file_clear = ttk.Button(settings_window, text="Clear Settings", command=lambda: delete_files(CONFIG_PATH))
     config_file_save = ttk.Button(settings_window, text="Save Settings", command=make_config_file)
 
     # Placing Elements
-
     # Top Bar
     title_label.grid(row=0, column=0, columnspan=2, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_X, sticky='EW')
 
@@ -570,7 +572,7 @@ def open_settings_window():
 
     # Tutorial Section
     tutorial_title.grid(row=10, column=0, padx=DEFAULT_PADDING_X_SUBTITLE, pady=(10,0), sticky='w')
-    tutorial_file_title.grid(row=11, column=0, columnspan=3, padx=DEFAULT_PADDING_X_SUBTITLE, pady=DEFAULT_PADDING_Y, sticky=DEFAULT_STICKY)
+    tutorial_file_checkbox.grid(row=11, column=0, columnspan=3, padx=DEFAULT_PADDING_X_SUBTITLE, pady=DEFAULT_PADDING_Y, sticky=DEFAULT_STICKY)
     tutorial_file_open.grid(row=11, column=3, columnspan=1, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y, sticky=DEFAULT_STICKY)
 
     # Config Section
@@ -584,7 +586,7 @@ def open_settings_window():
 
 # main body of the program, this runs the tkinter window
 def main():
-    global root
+    global root, source_text, target_text, seed_text, make_log_bool, save_config_bool, make_seed_bool, filter_var, img_dupe_var, img_dupe_use_var, img_dupe_input, target_button, show_tutorial_bool
 
     # defining root window
     root = tk.Tk()
@@ -605,14 +607,12 @@ def main():
     root.columnconfigure(index=1, weight=5)
 
     # VARIABLES
-    global source_text, target_text, seed_text, make_log_bool, save_config_bool, progress_bar_var, make_seed_bool, filter_var, img_dupe_var, img_dupe_use_var
-
     source_text = tk.StringVar()                                # takes source string from input
     target_text = tk.StringVar()                                # takes target string from input
     seed_text = tk.StringVar()                                  # takes seed from input
     make_log_bool = tk.BooleanVar()                             # takes checkbox boolean value of log
+    show_tutorial_bool = tk.BooleanVar()                        # takes checkbox boolean value of tutorial
     make_seed_bool = tk.BooleanVar()                            # takes checkbox boolean value of seed
-    progress_bar_var = tk.StringVar()                           # stores progress bar data for update purposes
     filter_var = tk.StringVar()                                 # stores filter_file path
     img_dupe_var = tk.StringVar()                               # stores img_dupe path
     revert_combo_box()
@@ -621,6 +621,8 @@ def main():
     config_data = read_config_file()                            # reads the config file
     if (config_data != {}):
         set_config_variables(config_data=config_data)           # if config file exists, set values to config file ones
+    else:
+        show_tutorial_bool.set(True)
 
     # Top Bar
     title_label = ttk.Label(root, text="PCSX2 Texture Randomizer", font=("Helvetica", 22, "bold"))
@@ -641,7 +643,6 @@ def main():
     seed_input = ttk.Entry(root, font=DEFAULT_FONT, textvariable=seed_text)
     seed_validate = ttk.Button(root, text="Random", command=lambda: seed_text.set(str(random.randint(0, pow(2, 32)))))
 
-    global img_dupe_input
     img_dupe_input_label = ttk.Label(root, text="Image Dupe")
     img_dupe_input = ttk.Combobox(root, textvariable=img_dupe_var, state="readonly", font=DEFAULT_FONT)
     img_dupe_input.bind("<<ComboboxSelected>>", revert_combo_box)
@@ -651,11 +652,9 @@ def main():
     ttk.Separator(root, orient=tk.HORIZONTAL).grid(row=6, column=0, columnspan=5, pady=10, sticky=DEFAULT_STICKY)
 
     # Target Button
-    global target_button
     target_button = ttk.Button(root, text="RANDOMIZE TEXTURES", style="Export.TButton", command=pressed_ranomise_button)
 
     # PLACING ALL ELEMENTS DOWN
-   
    # Top Bar
     title_label.grid(row=0, column=0, columnspan=2, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_X, sticky='EW')
     about_button.grid(row=0, column=3, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_X_SUBTITLE, ipadx=10, ipady=10, sticky=DEFAULT_STICKY)
@@ -680,11 +679,12 @@ def main():
 
     target_button.grid(row=7, column=0, columnspan=5, padx=DEFAULT_PADDING_X, pady=DEFAULT_PADDING_Y, ipadx=25, ipady=10, sticky=DEFAULT_STICKY)
 
+    if (show_tutorial_bool.get()):
+        if (askyesno(title="Welcome To Texture Randomizer", message="Welcome to Texture Randomizer. Do you want to check out the tutorial on how to use this program? (You can disable this startup message in the Settings)")):
+            open_github_button_action()
+
     root.mainloop()
 
 # This is to ensure the program is run as a separate file and not a package
 if __name__ == "__main__":
     main()                                                  # calls on main function
-
-# I am inflating these lines
-# To get to 690 lines
