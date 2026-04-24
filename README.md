@@ -57,8 +57,9 @@ To use this script, follow the steps
 - Next time you load the program, it will load the settings
 - To delete the configuration, just delete the `config.json`, or click on `Clear Settings`
 
-### GitHub Button
-- There is a "GitHub" button to access this `readme.md` file
+### Tutorial
+- There is a `Open Tutorial` button to access this `readme.md` file
+- You can also uncheck the `Show Tutorial On Startup` button and save configuration to disable the pesky startup message popup
 
 ## Image Dupe
 - This will allow you to set a single image or a pool of images as the texture for the entire game
@@ -76,6 +77,7 @@ To use this script, follow the steps
 ## Randomize Texture Button
 - After everything is filled in, you can press the `Randomize Textures` or `Duplicate Textures` button
 - In the command line, it will show you your progress
+- Do not panic, the program's main window might freeze, it is normal behaviour (I do not want to go on a rant about multithreading in python)
 - After the randomization process is done, you will get a message saying the same
 
 ## PCSX2 Setup
@@ -91,4 +93,4 @@ To use this script, follow the steps
     - Turn off `Load Textures` in PCSX2 Graphics Settings
 
 # About
-This script was made by `real-xp`, better know as `XP`, along with help from `Azullia`. If you find any flaw or bugs, please tell me in the comment feature of gists.
+This script was made by `real-xp`, better know as `XP`, along with big help from `Azullia`. If you find any flaw or bugs, please tell me in the comment feature of gists.
