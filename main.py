@@ -53,18 +53,22 @@ DEFAULT_STICKY = "EW"
 #                       CORE FUNCTION
 # ------------------------------------------------------------
 
+# This is the array that stores the file names including their paths
+# This is mainly for temproary reasons to check if the source folder has image files
+file_list = []                                              # empty dict initialised before
+
+# This is a dict / map for the files
+# The key is the extension for the file
+# The value is the path of the file of that particular extension
+# This can be used to filter out particular extensions too
+extension_file_dict = {}                                   # empty dict initialised before
+
 # this function does exactly that
 def get_file_list(files : list):
 
     # This is the variable that stores the temproary data for the file names in the filter.txt file
     # This should contain data like `91fea45880122683-9788124e782590b3-00005994`, it should remove extensions from the names
     filter_file_list = []
-
-    # This is a dict / map for the files
-    # The key is the extension for the file
-    # The value is the path of the file of that particular extension
-    # This can be used to filter out particular extensions too
-    extension_file_dict = {}                                                    # empty dict initialised before
 
     try:
         with open("./filter.txt", 'r') as filter_file:             
@@ -73,7 +77,7 @@ def get_file_list(files : list):
                 if (line.find(".") != -1):
                     filter_file_list.append(line.rsplit('.', 1)[0])             # removes the extension
     except Exception as error:
-        print(ERROR_CODE + "[ERROR]\tCould not detect filter file : " + error + END_CODE)
+        print("{ERROR_CODE}[ERROR]\tCould not detect filter file : {error}{END_CODE}")
         showwarning(title="Filter List", message="Filter List Not Found", detail="Filter List was not found or does not exist.")
 
     # Checks and splits filename and extension from the retrieved file_list
@@ -81,7 +85,7 @@ def get_file_list(files : list):
         try:
             file_name, extension = os.path.splitext(file)                       # splits filename and extension
         except Exception as error:
-            print(ERROR_CODE + "[ERROR]\tCould not separate file name from extension : " + error + END_CODE)
+            print(f"{ERROR_CODE}[ERROR]\tCould not separate file name from extension : {error}{END_CODE}")
             showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
             continue
 
@@ -99,7 +103,6 @@ def get_file_list(files : list):
                 extension_file_dict[extension].append(file_name)               # gets the list of files of that particular extension type and adds it
             else:
                 extension_file_dict.update({extension : [file_name]})          # makes a new key value pair and adds it to dict
-            return extension_file_dict
 
 # checks validity of path, -1 = error, 0 = passed check
 def check_path_validity():
@@ -113,19 +116,19 @@ def check_path_validity():
             return 0
         except IOError as error:
             showerror(title="Target Folder", message="Target Folder Could Not Be Made", detail=error)
-            print(ERROR_CODE + "[ERROR]\tCould not make target folder : " + error + END_CODE)
+            print(f"{ERROR_CODE}[ERROR]\tCould not make target folder : {error}{END_CODE}")
             return -1
         
     return 0
 
 # rename files of specific extension
-def rename_spec_ext(extension_file_map : dict):
+def rename_spec_ext():
     # TODO: TRY TO IMPROVE, DO NOT BREAK
     user_want_to_continue_processing = False
-    if (not extension_file_map):
+    if (not extension_file_dict):
         showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
     else:
-        for extension, value_list in extension_file_map.items():                                          # loop through list, giving extension, value of extension in dict
+        for extension, value_list in extension_file_dict.items():                                          # loop through list, giving extension, value of extension in dict
             randomized_list = value_list.copy()                                                             # copy into randomized list
             random.shuffle(randomized_list)                                                                 # shuffles
 
@@ -139,7 +142,7 @@ def rename_spec_ext(extension_file_map : dict):
                     try:
                         os.rename(original_file_path, renamed_file_path)                                    # actual renaming action
                     except IOError as error:
-                        print(ERROR_CODE + "[ERROR]\tCould not rename : " + error + END_CODE)
+                        print(f"{ERROR_CODE}[ERROR]\tCould not rename : {error}{END_CODE}")
                         if (not user_want_to_continue_processing):
                             showerror(title="Error Linking", message=error)
                             user_want_to_continue_processing = askyesno(title="Do you want to continue", message="Do you still want to ignore this error and continue processing? This can lead to unexpected results")
@@ -155,12 +158,12 @@ def rename_spec_ext(extension_file_map : dict):
 
                 except Exception as error:
                     showerror(title="Error Replacing", message="Files could not be replaced")
-                    print(ERROR_CODE + "[ERROR]\tCould not perform task : " + error + END_CODE)
+                    print(f"{ERROR_CODE}[ERROR]\tCould not perform task : {error}{END_CODE}")
         showinfo(title="Successful", message="Files were successfully randomized", detail="I wish you my randomized wishes for playing the game.")
         reset_variables()                                                                                   # Resets all variables for next replacement
 
 # sets hard links from original image
-def set_hard_links(extension_file_map : dict):
+def set_hard_links():
 
     total_elements_size = 0
     temp_file_path = "./tempfiles"
@@ -177,7 +180,7 @@ def set_hard_links(extension_file_map : dict):
 
     extension_img_dupe_file = ""
 
-    if (not extension_file_map):
+    if (not extension_file_dict):
         showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
     else:
 
@@ -189,7 +192,7 @@ def set_hard_links(extension_file_map : dict):
     # make a hard link
     # append the hard link counter in the map
 
-        for extension, value_list in extension_file_map.items():  # loop through list, giving extension, value of extension in dict
+        for extension, value_list in extension_file_dict.items():  # loop through list, giving extension, value of extension in dict
             for index, file_name in enumerate(value_list):          # goes through shuffled list
                 try:
                     # choose a random file from the map
@@ -212,9 +215,9 @@ def set_hard_links(extension_file_map : dict):
                                 try:
                                     os.mkdir(temp_file_path)
                                 except IOError as error:
-                                    print(ERROR_CODE + "[ERROR]\tCould not make temproary folder : " + error + END_CODE)
+                                    print(f"{ERROR_CODE}[ERROR]\tCould not make temproary folder : {error}{END_CODE}")
                         except IOError as error:
-                            print(ERROR_CODE + "[ERROR]\tCould not make temproary folder : " + error + END_CODE)
+                            print(f"{ERROR_CODE}[ERROR]\tCould not make temproary folder : {error}{END_CODE}")
                     else:
                         temp_file = img_dupe_current_path
 
@@ -226,7 +229,7 @@ def set_hard_links(extension_file_map : dict):
                     try:
                         os.link(temp_file, renamed_file_path)
                     except IOError as error:
-                        print(ERROR_CODE + "[ERROR]\tCould not make hard link : " + error + END_CODE)
+                        print(f"{ERROR_CODE}[ERROR]\tCould not make hard link : {error}{END_CODE}")
                         if (not user_want_to_continue):
                             showerror(title="Error Linking", message=error)
                             user_want_to_continue = askyesno(title="Do you want to continue", message="Do you still want to ignore this error and continue processing? This can lead to unexpected results")
@@ -241,18 +244,18 @@ def set_hard_links(extension_file_map : dict):
                                 is_first_time = True
                             log_file(is_first_time, log_text)
                     except Exception as error:
-                        print(WARNING_CODE + "[WARNING]\tLogging issue occured : " + error + END_CODE)
+                        print(f"{WARNING_CODE}[WARNING]\tLogging issue occured : {error}{END_CODE}")
                     
                     hard_link_current_limit['current_hard_link'] += 1
                 except Exception as error:
                     showerror(title="Error Replacing", message="Files could not be replaced")
-                    print(ERROR_CODE + "[ERROR]\tCould not perform task : " + error + END_CODE)
+                    print(f"{ERROR_CODE}[ERROR]\tCould not perform task : {error}{END_CODE}")
 
             # all things done
             try:
                 os.remove(temp_file_path)
             except Exception as error:
-                print(ERROR_CODE + "[ERROR]\tCould not delete temp folder : " + error + END_CODE)
+                print(f"{ERROR_CODE}[ERROR]\tCould not delete temp folder : {error}{END_CODE}")
 
             showinfo(title="Successful", message="Files were successfully linked", detail="I wish you my randomized wishes for playing the game.")
             reset_variables()                                                               # Resets all variables for next replacement
@@ -277,9 +280,9 @@ def make_config_file():
             json.dump(data, config_file)
         showinfo(title="Config Saved", message="Config File Has Been Saved")
     except FileNotFoundError as error:
-        print(ERROR_CODE + "[ERROR]\tThe file 'config.json' was not found. " + error + END_CODE)
+        print(f"{ERROR_CODE}[ERROR]\tThe file 'config.json' was not found. {error}{END_CODE}")
     except json.JSONDecodeError as error:
-        print(WARNING_CODE + "[ERROR]\tFailed to decode JSON from the file. " + error + END_CODE)
+        print(f"{WARNING_CODE}[ERROR]\tFailed to decode JSON from the file. {error}{END_CODE}")
 
 # reads config file, returns either json data, or empty
 def read_config_file():
@@ -287,10 +290,10 @@ def read_config_file():
         with open(CONFIG_PATH, 'r') as config_file:
             return json.load(config_file)
     except FileNotFoundError as error:
-        print(WARNING_CODE + "[WARNING]\tThe file 'config.json' was not found. " + error + END_CODE)
+        print(f"{WARNING_CODE}[WARNING]\tThe file 'config.json' was not found. {error}{END_CODE}")
         return {}
     except json.JSONDecodeError as error:
-        print(WARNING_CODE + "[WARNING]\tFailed to decode JSON from the file. " + error + END_CODE)
+        print(f"{WARNING_CODE}[WARNING]\tFailed to decode JSON from the file. {error}{END_CODE}")
         return {}
 
 # This is to set the variables from config file, may throw error if config file is tampered with
@@ -304,7 +307,7 @@ def set_config_variables(config_data : dict):
         make_seed_bool.set(config_data["make_seeds_file"])
         show_tutorial_bool.set(config_data["show_tutorial"])
     except Exception as error:
-        print(ERROR_CODE + "[ERROR]\tFailed to set configuration variables from config.json : " + error + END_CODE)
+        print(f"{ERROR_CODE}[ERROR]\tFailed to set configuration variables from config.json : {error}{END_CODE}")
         showerror(title="Config Error", message="Config File Could Not Be Loaded")
         if(askyesno(title="Delete config.json?", message="Do you want to delete the corrupted config file?")):
             delete_files(CONFIG_PATH)
@@ -315,7 +318,7 @@ def seed_txt(seed : str):
         with open(SEED_SAVE_PATH, 'a') as seeds_file:
             seeds_file.write(f"{TIMESTAMP} -> {seed}\n")
     except FileNotFoundError as error:
-        print(ERROR_CODE + "[ERROR]\tThe file 'seeds.json' was not found. : " + error + END_CODE)
+        print(f"{ERROR_CODE}[ERROR]\tThe file 'seeds.json' was not found. : {error}{END_CODE}")
 
 # Logging function, makes log.log file, accepts first_time, which sees if it is first time making log this session, and string_file, data for log
 def log_file(first_time : bool, string_file : str):
@@ -325,21 +328,22 @@ def log_file(first_time : bool, string_file : str):
                 log_file.write(f"\n------{TIMESTAMP}------\n\n")
             log_file.write(f"{string_file}\n")
     except FileNotFoundError as error:
-        print(ERROR_CODE + "[ERROR]\tThe file 'log.log' was not found. : " + error + END_CODE)
+        print(f"{ERROR_CODE}[ERROR]\tThe file 'log.log' was not found. : {error}{END_CODE}")
 
 # It resets variables after replacement of all textures is done
 def reset_variables():
-    global IMG_DUPE_ARRAY
+    global IMG_DUPE_ARRAY, file_list
     try:
         source_text.set("")
         target_text.set("")
         seed_text.set("")
         img_dupe_use_var.set(False)
         img_dupe_var.set("")
+        file_list = []
         IMG_DUPE_ARRAY = []
         img_dupe_input['values'] = IMG_DUPE_ARRAY
     except Exception as error:
-        print(ERROR_CODE + "[ERROR]\t Could not reset variables : " + error + END_CODE)
+        print(f"{ERROR_CODE}[ERROR]\t Could not reset variables : {error}{END_CODE}")
 
 # ------------------------------------------------------------
 #                   TKINTER CORE FUNCTIONS
@@ -378,7 +382,7 @@ def open_notepad_window(path):
     try:
         subprocess.run(["notepad",path])
     except Exception as error:
-        print(ERROR_CODE + "[ERROR]\tCould not open notepad : " + error + END_CODE)
+        print(f"{ERROR_CODE}[ERROR]\tCould not open notepad : {error}{END_CODE}")
         showerror(title="Error", message="Some Kind Of Error Occured")
 
 # deletes file of log and seed
@@ -388,7 +392,7 @@ def delete_files(path):
         showinfo(title="Successful", message="File was successfully deleted.")
     except Exception as error:
         showerror(title="Error", message="Some kind of error occured while deleting.")
-        print(ERROR_CODE + "[ERROR]\tCould not delete files : " + error + END_CODE)
+        print(f"{ERROR_CODE}[ERROR]\tCould not delete files : {error}{END_CODE}")
         # set variables for use
 
 # randomise button pressed, does checks        
@@ -430,15 +434,12 @@ def set_variables():
 # main place where randomisation initially passes checks
 def main_randomizer_task(is_image_duping_action : bool):
     # Set variable values
-    global SOURCE_PATH, FINAL_PATH, SEED, FILTER_PATH
+    global SOURCE_PATH, FINAL_PATH, SEED, FILTER_PATH, file_list
     set_variables()
 
     # removing \ to use / in path, if user didnt use choose button
     SOURCE_PATH = SOURCE_PATH.replace("\\", "/")
     FINAL_PATH = FINAL_PATH.replace("\\", "/")
-
-    file_list = []                                                  # Array stores file list temproarily
-    extension_file_map = []                                         # This is the extension : file map
 
     # testing if filelist can even be detected
     try:
@@ -449,7 +450,7 @@ def main_randomizer_task(is_image_duping_action : bool):
                 fl = ft.replace("\\", "/")
                 file_list.append(fl)
     except Exception as error:
-        print(ERROR_CODE + "[ERROR]\tCould not detect files : " + error + END_CODE)
+        print(f"{ERROR_CODE}[ERROR]\tCould not detect files : {error}{END_CODE}")
         showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
         file_list = []
 
@@ -467,9 +468,9 @@ def main_randomizer_task(is_image_duping_action : bool):
             seed_txt(SEED)                                          # puts the seed into seed history file
 
         if (check_path_validity() == 0):                            # checks if path is valid
-            extension_file_map = get_file_list(file_list)           # calls on file filter and file collector
+            get_file_list(file_list)                                # calls on file filter and file collector
             if (not is_image_duping_action):
-                rename_spec_ext(extension_file_map)                 # actual renaming function
+                rename_spec_ext()                                   # actual renaming function
             else:
                 if (not askyesno(title="Are You SURE?", message="This method invloves making Hard Links from the image file you provided and make thousands of linked files. This approach uses less storage than copying, but has a lot of limitations. Do you still want to continue?")):
                     return
@@ -479,7 +480,7 @@ def main_randomizer_task(is_image_duping_action : bool):
                     return
                 if (not askyesno(title="Are You REALLY REALLY REALLY SURE?", message="If you have done this process before, and deleted the linked files, but they are still in recycling bin, PLEASE DELETE THOSE FILES AS THEY STILL COUNT AS HARD LINKS AND COUNT TOWARDS THE ORIGINAL IMAGE LIMIT. IF YOU DONT DELETE, THE PROGRAM WILL CRASH AND WILL NOT GENERATE IMAGES. Do you still wish to continue?")):
                     return
-                set_hard_links(extension_file_map)                  # sets hard links, for image duping
+                set_hard_links()                                    # sets hard links, for image duping
         else:
             showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
 
