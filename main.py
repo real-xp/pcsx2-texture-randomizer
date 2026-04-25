@@ -106,9 +106,6 @@ def get_file_list(files : list):
 
 # checks validity of path, -1 = error, 0 = passed check
 def check_path_validity():
-    if (not os.path.exists(SOURCE_PATH)):
-        return -1
-    
     if (not os.path.exists(FINAL_PATH)):
         showinfo(title="Target Folder Not Found", message="Target Folder Not Found.", detail="A new target folder will be made.") 
         try:
@@ -118,7 +115,6 @@ def check_path_validity():
             showerror(title="Target Folder", message="Target Folder Could Not Be Made", detail=error)
             print(f"{ERROR_CODE}[ERROR]\tCould not make target folder : {error}{END_CODE}")
             return -1
-        
     return 0
 
 # rename files of specific extension
@@ -483,6 +479,9 @@ def main_randomizer_task(is_image_duping_action : bool):
                 set_hard_links()                                    # sets hard links, for image duping
         else:
             showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
+    else:
+        showerror(title="Files not detected", message="Files were not detected in source folder", detail="Make sure the source folder is not empty.")
+        print(f"{ERROR_CODE}[ERROR]\tCould not detect files{END_CODE}")
 
 # change text to dump or randomize
 def change_text_to_dupe():

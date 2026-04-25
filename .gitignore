@@ -3,3 +3,4 @@ log.txt
 config.json
 .gitignore
 test/*
+filters/*
