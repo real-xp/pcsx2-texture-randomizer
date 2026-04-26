@@ -21,6 +21,11 @@ To use this script, follow the steps
 - It should bring out a GUI interface
 - In `Source Path` field, press `Choose` and select the directory where your textures are located
 - In `Target Path` field, press `Choose` and select the directory where you want to rename and move the textures to
+- Set a seed in the `Seed` field, or choose a random seed by pressing `Random` button
+- If you want to use the Image Duper function, click on `Choose` under `Image Dupe` and select the images you want to be duped and be replaced as textures for the game, also check the `Use` Checkbox
+- After you have set everything up, Click on the `Randomize Textures` or `Duplicate Textures` button, depending on which mode you are in
+- It should hopefully start processing everything, and should be successful in its task
+- You can enable `Texture Replacement` in PCSX2, and `Load Textures` to load these randomized textures
 
 ## Seeds
 - To change the seed for the randomizer, you have multiple options
