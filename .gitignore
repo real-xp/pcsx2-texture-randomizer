@@ -6,3 +6,4 @@ test/*
 bin/__pycache__
 build
 dist
+main.py.bkp
