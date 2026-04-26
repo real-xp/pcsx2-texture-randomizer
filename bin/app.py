@@ -187,7 +187,7 @@ def open_settings_window():
 
     settings_window = tk.Toplevel(root)
     settings_window.title("Settings")
-    settings_window.geometry("600x600")
+    # settings_window.geometry("600x600")
     settings_window.resizable(False,False)
 
     # defining column weight
@@ -297,7 +297,7 @@ def main():
     # defining root window
     root = tk.Tk()
     root.title("PCSX2 Texture Randomizer")
-    root.geometry("900x360")
+    # root.geometry("900x360")
     root.resizable(False,False)
 
     # defining styles for ttk widgets
@@ -358,7 +358,7 @@ def main():
     ttk.Separator(root, orient=tk.HORIZONTAL).grid(row=6, column=0, columnspan=5, pady=10, sticky=variables.DEFAULT_STICKY)
 
     # Target Button
-    target_button = ttk.Button(root, text="RANDOMIZE TEXTURES", style="Export.TButton", command=pressed_ranomise_button)
+    target_button = ttk.Button(root, width=70, text="RANDOMIZE TEXTURES", style="Export.TButton", command=pressed_ranomise_button)
 
     # PLACING ALL ELEMENTS DOWN
    # Top Bar
@@ -383,7 +383,7 @@ def main():
     img_dupe_use.grid(row=5, column=2, columnspan=1, padx=variables.DEFAULT_PADDING_X, pady=variables.DEFAULT_PADDING_Y, sticky=variables.DEFAULT_STICKY)
     img_dupe_choose.grid(row=5, column=3, columnspan=1, padx=variables.DEFAULT_PADDING_X, pady=variables.DEFAULT_PADDING_Y, sticky=variables.DEFAULT_STICKY)
 
-    target_button.grid(row=7, column=0, columnspan=5, padx=variables.DEFAULT_PADDING_X, pady=variables.DEFAULT_PADDING_Y, ipadx=25, ipady=10, sticky=variables.DEFAULT_STICKY)
+    target_button.grid(row=7, column=0, columnspan=5, padx=variables.DEFAULT_PADDING_X, pady=(variables.DEFAULT_PADDING_Y, 10), ipadx=25, ipady=10, sticky=variables.DEFAULT_STICKY)
 
     if (show_tutorial_bool.get()):
         if (askyesno(title="Welcome To Texture Randomizer", message="Welcome to Texture Randomizer. Do you want to check out the tutorial on how to use this program? (You can disable this startup message in the Settings)")):
