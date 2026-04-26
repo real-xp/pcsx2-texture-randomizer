@@ -2,6 +2,8 @@
 This is a simple program I made to randomize texture dumps from PCSX2.
 Initially the program was a single file script and was made just for the purpose of randomizing Enthusia (game) textures, but this can be used in many other games
 
+<img src="assets/github/main.png" alt="Main Window" style="width:100%; height:auto;">
+
 # Requirements
 - You need `Python 3` installed on your system
 - You need `Texture Replacement` enabled on PCSX2
@@ -31,6 +33,8 @@ To use this script, follow the steps
 ## Settings
 - You can see all the settings by pressing the `Settings` button on the top right of the main window
 
+<img src="assets/github/settings.png" alt="Settings Window" style="width:40%; height:auto;">
+
 ### Logging
 - You can enable logging of textures to see which textures is renamed to which
 - You can enable this by checking the `Make Logs` checkbox
@@ -38,12 +42,19 @@ To use this script, follow the steps
 - You can access logs by clicking on the `Open` button
 - You can delete logs by pressing `Delete` button
 
-### Filter List
+### Filter
 - To add exception / filter for text textures, just include the `filter.txt` file in the same directory as the `main.py`
 - You can also choose your own filter file or create one by pressing `Choose` or `Open` in the `Filter` section of `Settings`
     - It will open a Notepad file, where you can paste the texture names
     - Make sure the file names in the `filter.txt` is separated by new lines
     - Please only input the file names in the list, and not the entire paths for the files
+  
+### Generating Filter File
+- You can also generate filter files in the `Generate Filter File` section
+- In the first input box, put in the folder which contains the textures that you want to filter, or press `Choose Folder Location` button
+- In the second input box, put in the folder where you want the `filter.txt` file to be saved, or press `Choose Filter Location` button
+- Press the `Generate Filter File` button, and it should generate a `filter.txt` file
+- You will also get an option to use it as your filter file for the project, which you can accept or reject
 
 ### Saving Settings
 - You can save settings for the setup by checking the `Save Settings` button
@@ -91,6 +102,7 @@ To use this script, follow the steps
 - To rever the textures back to normal, you can
     - Either delete the `replacements` folder where the textures are
     - Turn off `Load Textures` in PCSX2 Graphics Settings
+- If you are using hard links, **please make sure to permanant delete all files in the replacement folder**
 
 # Build
 - Even though this project is completely runnable by just using a console and running Python on the `main.py` file, you can build this project too
@@ -108,4 +120,4 @@ pyinstaller --name "PCSX2 Texture Randomizer" --clean --specpath "../build" --di
 - This should generate a `PCSX2 Texture Randomizer` file in the `app` folder in root of the project
 
 # About
-This script was made by `real-xp`, better know as `XP`, along with big help from `Azullia`. If you find any flaw or bugs, please tell me in the comment feature of gists.
+This script was made by `real-xp`, better know as `XP`, along with big help from `Azullia`. I am not the most experienced with Python as a whole, so if I have made some rookie mistakes, please forgive me. No AI was used in any step of the development of the program, just pure brain stupidity and staring-at-documentation-for-hours. If you find any flaw or bugs, please tell me in the `issues` section of `GitHub`
