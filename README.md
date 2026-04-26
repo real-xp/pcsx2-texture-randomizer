@@ -1,9 +1,9 @@
 # PCSX2 Texture Randomizer
-This is a simple script I made to randomize texture dumps from PCSX2.
-Initially the script was made just for the purpose of randomising Enthusia (game) textures, but this can be used in many other games
+This is a simple program I made to randomize texture dumps from PCSX2.
+Initially the program was a single file script and was made just for the purpose of randomizing Enthusia (game) textures, but this can be used in many other games
 
 # Requirements
-- You need Python 3 installed on your system
+- You need `Python 3` installed on your system
 - You need `Texture Replacement` enabled on PCSX2
     - To do that, Go to `Settings > Graphics`
     - Under `Graphics`, go to `Texture Replacement`
