@@ -4,7 +4,7 @@ import random
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
-from tkinter.messagebox import showerror, showinfo, showwarning, askyesno
+from tkinter.messagebox import showerror, showinfo, askyesno
 import webbrowser
 import subprocess
 import variables
@@ -21,7 +21,6 @@ def reset_variables():
         target_text.set("")
         seed_text.set("")
         img_dupe_use_var.set(False)
-        img_dupe_var.set("")
         core.file_list = []
         variables.IMG_DUPE_ARRAY = []
         img_dupe_input['values'] = variables.IMG_DUPE_ARRAY

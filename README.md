@@ -12,10 +12,10 @@ Initially the script was made just for the purpose of randomising Enthusia (game
 
 # Usage
 To use this script, follow the steps
-- Download the `main.py` file
+- Download the repository using the `Download` button
 - Download the textures you want to randomize
-    - Make sure the textures you want to randomize are in a separate folder to your `replacements` folder
-- Open the `main.py` using Python
+    - Make sure the textures you want to randomize are in a separate folder and NOT in your `replacements` folder
+- Open the `main.py` using Python (It should be in the `bin` folder)
 - It should bring out a GUI interface
 - In `Source Path` field, press `Choose` and select the directory where your textures are located
 - In `Target Path` field, press `Choose` and select the directory where you want to rename and move the textures to
@@ -91,6 +91,21 @@ To use this script, follow the steps
 - To rever the textures back to normal, you can
     - Either delete the `replacements` folder where the textures are
     - Turn off `Load Textures` in PCSX2 Graphics Settings
+
+# Build
+- Even though this project is completely runnable by just using a console and running Python on the `main.py` file, you can build this project too
+- For this you will require `pyinstaller` from https://pyinstaller.org/
+- To install pyinstaller, run
+```bash
+pip install pyinstaller
+```
+- It should install `pyinstaller` successfully
+- Now open a command window in the `bin` folder of the project
+- Type in the following command
+```bash
+pyinstaller --name "PCSX2 Texture Randomizer" --clean --specpath "../build" --distpath "../dist" --workpath "../build" --onefile main.py
+```
+- This should generate a `PCSX2 Texture Randomizer` file in the `dist` folder in root of the project
 
 # About
 This script was made by `real-xp`, better know as `XP`, along with big help from `Azullia`. If you find any flaw or bugs, please tell me in the comment feature of gists.
