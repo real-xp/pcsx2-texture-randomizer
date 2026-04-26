@@ -42,6 +42,10 @@ def dialog_box_button_action(action : str, type_of_action : str):
             source_text.set(dialog_path)
         elif (action == "Target"):
             target_text.set(dialog_path)
+        elif (action == "Filter_Generate_Folder"):
+            filter_gen_folder_path.set(dialog_path)
+        elif (action == "Filter_Generate_File"):
+            filter_gen_file_path.set(dialog_path)
         elif (action == "Filter"):
             variables.FILTER_PATH = dialog_path
             filter_var.set(variables.FILTER_PATH)
@@ -178,13 +182,20 @@ def revert_combo_box(event=""):
 
 # opens settings window
 def open_settings_window():
+
+    global filter_gen_folder_path, filter_gen_file_path
+
     settings_window = tk.Toplevel(root)
     settings_window.title("Settings")
-    settings_window.geometry("600x440")
+    settings_window.geometry("600x600")
     settings_window.resizable(False,False)
 
     # defining column weight
     settings_window.columnconfigure(index=0, weight=5)
+
+    # setting gen file variables
+    filter_gen_folder_path = tk.StringVar()
+    filter_gen_file_path = tk.StringVar()
 
     # Top Bar
     title_label = ttk.Label(settings_window, text="Settings", font=("Helvetica", 22, "bold"))
@@ -213,12 +224,21 @@ def open_settings_window():
 
     ttk.Separator(settings_window, orient=tk.HORIZONTAL).grid(row=9, column=0, columnspan=5, padx=variables.DEFAULT_PADDING_X ,pady=(5,0), sticky=variables.DEFAULT_STICKY)
 
+    filter_generate_title = ttk.Label(settings_window, text="Generate Filter File", style="Subtitle.TLabel")
+    filter_generate_folder_path_field = ttk.Entry(settings_window, textvariable=filter_gen_folder_path)
+    filter_generate_folder_path_field_button = ttk.Button(settings_window, text="Choose Folder Location", command=lambda: dialog_box_button_action(action="Filter_Generate_Folder", type_of_action="FOLDER"))
+    filter_generate_file_path_field = ttk.Entry(settings_window, textvariable=filter_gen_file_path)
+    filter_generate_file_path_field_button = ttk.Button(settings_window, text="Choose Filter Location", command=lambda: dialog_box_button_action(action="Filter_Generate_File", type_of_action="FOLDER"))
+    filter_generate_button = ttk.Button(settings_window, text="Generate Filter File", command=lambda: core.make_filter_file(filter_folder_path=filter_gen_folder_path.get(), filter_file_path=filter_gen_file_path.get()))
+
+    ttk.Separator(settings_window, orient=tk.HORIZONTAL).grid(row=14, column=0, columnspan=5, padx=variables.DEFAULT_PADDING_X ,pady=(5,0), sticky=variables.DEFAULT_STICKY)
+
     # Filter section
     tutorial_title = ttk.Label(settings_window, text="Tutorial", style="Subtitle.TLabel")
     tutorial_file_checkbox = ttk.Checkbutton(settings_window, text="Show tutorial on startup", variable=show_tutorial_bool)
     tutorial_file_open = ttk.Button(settings_window, text="Open Tutorial", command=open_github_button_action)
 
-    ttk.Separator(settings_window, orient=tk.HORIZONTAL).grid(row=12, column=0, columnspan=5, padx=variables.DEFAULT_PADDING_X ,pady=(5,0), sticky=variables.DEFAULT_STICKY)
+    ttk.Separator(settings_window, orient=tk.HORIZONTAL).grid(row=17, column=0, columnspan=5, padx=variables.DEFAULT_PADDING_X ,pady=(5,0), sticky=variables.DEFAULT_STICKY)
 
     # Config section
     about_me = ttk.Label(settings_window, text="Made by realXP (XP)")
@@ -248,15 +268,23 @@ def open_settings_window():
     filter_file_open.grid(row=8, column=2, columnspan=1, padx=variables.DEFAULT_PADDING_X, pady=variables.DEFAULT_PADDING_Y, sticky=variables.DEFAULT_STICKY)
     filter_file_choose.grid(row=8, column=3, columnspan=1, padx=variables.DEFAULT_PADDING_X, pady=variables.DEFAULT_PADDING_Y, sticky=variables.DEFAULT_STICKY)
 
+    # Generate Filter File Section
+    filter_generate_title.grid(row=10, column=0, columnspan=2, padx=variables.DEFAULT_PADDING_X_SUBTITLE, pady=(10,0), sticky='w')
+    filter_generate_folder_path_field.grid(row=11, column=0, columnspan=2, padx=variables.DEFAULT_PADDING_X_SUBTITLE, pady=variables.DEFAULT_PADDING_Y, sticky=variables.DEFAULT_STICKY)
+    filter_generate_folder_path_field_button.grid(row=11, column=2, columnspan=2, padx=variables.DEFAULT_PADDING_X, pady=variables.DEFAULT_PADDING_Y, sticky=variables.DEFAULT_STICKY)
+    filter_generate_file_path_field.grid(row=12, column=0, columnspan=2, padx=variables.DEFAULT_PADDING_X_SUBTITLE, pady=variables.DEFAULT_PADDING_Y, sticky=variables.DEFAULT_STICKY)
+    filter_generate_file_path_field_button.grid(row=12, column=2, columnspan=2, padx=variables.DEFAULT_PADDING_X, pady=variables.DEFAULT_PADDING_Y, sticky=variables.DEFAULT_STICKY)
+    filter_generate_button.grid(row=13, column=0, columnspan=4, padx=variables.DEFAULT_PADDING_X, pady=variables.DEFAULT_PADDING_Y, sticky=variables.DEFAULT_STICKY)
+
     # Tutorial Section
-    tutorial_title.grid(row=10, column=0, padx=variables.DEFAULT_PADDING_X_SUBTITLE, pady=(10,0), sticky='w')
-    tutorial_file_checkbox.grid(row=11, column=0, columnspan=3, padx=variables.DEFAULT_PADDING_X_SUBTITLE, pady=variables.DEFAULT_PADDING_Y, sticky=variables.DEFAULT_STICKY)
-    tutorial_file_open.grid(row=11, column=3, columnspan=1, padx=variables.DEFAULT_PADDING_X, pady=variables.DEFAULT_PADDING_Y, sticky=variables.DEFAULT_STICKY)
+    tutorial_title.grid(row=15, column=0, padx=variables.DEFAULT_PADDING_X_SUBTITLE, pady=(10,0), sticky='w')
+    tutorial_file_checkbox.grid(row=16, column=0, columnspan=3, padx=variables.DEFAULT_PADDING_X_SUBTITLE, pady=variables.DEFAULT_PADDING_Y, sticky=variables.DEFAULT_STICKY)
+    tutorial_file_open.grid(row=16, column=3, columnspan=1, padx=variables.DEFAULT_PADDING_X, pady=variables.DEFAULT_PADDING_Y, sticky=variables.DEFAULT_STICKY)
 
     # Config Section
-    about_me.grid(row=13, column=0, columnspan=2, padx=variables.DEFAULT_PADDING_X_SUBTITLE, pady=variables.DEFAULT_PADDING_X_SUBTITLE, sticky=variables.DEFAULT_STICKY)
-    config_file_clear.grid(row=13, column=2, columnspan=1, padx=variables.DEFAULT_PADDING_X, pady=variables.DEFAULT_PADDING_X_SUBTITLE, sticky=variables.DEFAULT_STICKY)
-    config_file_save.grid(row=13, column=3, columnspan=1, padx=variables.DEFAULT_PADDING_X, pady=variables.DEFAULT_PADDING_X_SUBTITLE, sticky=variables.DEFAULT_STICKY)
+    about_me.grid(row=18, column=0, columnspan=2, padx=variables.DEFAULT_PADDING_X_SUBTITLE, pady=variables.DEFAULT_PADDING_X_SUBTITLE, sticky=variables.DEFAULT_STICKY)
+    config_file_clear.grid(row=18, column=2, columnspan=1, padx=variables.DEFAULT_PADDING_X, pady=variables.DEFAULT_PADDING_X_SUBTITLE, sticky=variables.DEFAULT_STICKY)
+    config_file_save.grid(row=18, column=3, columnspan=1, padx=variables.DEFAULT_PADDING_X, pady=variables.DEFAULT_PADDING_X_SUBTITLE, sticky=variables.DEFAULT_STICKY)
 
 # ------------------------------------------------------------
 #                   TKINTER WINDOW MAIN

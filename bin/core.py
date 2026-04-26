@@ -118,7 +118,6 @@ def rename_spec_ext():
 # sets hard links from original image
 def set_hard_links():
 
-    total_elements_size = 0
     temp_file_path = "./tempfiles"
     user_want_to_continue = False
 
@@ -282,3 +281,31 @@ def log_file(first_time : bool, string_file : str):
             log_file.write(f"{string_file}\n")
     except FileNotFoundError as error:
         print(f"{variables.ERROR_CODE}[ERROR]\tThe file 'log.log' was not found. : {error}{variables.END_CODE}")
+
+# Make filter.txt file
+def make_filter_file(filter_folder_path: str, filter_file_path: str):
+    if (not os.path.exists(filter_folder_path)):
+        print("NOT PATH EXIST")
+        return
+    try:
+        if "\\" in filter_file_path:
+            filter_file_path.replace("\\", "/")
+        if filter_file_path[-1] == "/":
+            filter_file_path = filter_file_path[:-1]
+        print(filter_file_path)
+        filter_file_path = f"{filter_file_path}/filter.txt"
+        for root, dirs, files in os.walk(filter_folder_path):
+            for n in files:
+                fp = os.path.join(root, n)
+                ft = fp.replace(filter_folder_path, "")
+                fl = ft.replace("\\", "/")
+                if "/" in fl:
+                    fl = fl.rsplit('/', 1)[1]
+                with open(filter_file_path, 'a') as filter_file:
+                    filter_file.write(f"{fl}\n")
+        showinfo(title="Generated Filter File Successfully", message="Filter File Was Generated")
+        if (askyesno(title="Filter File", message="Do you want to replace filter file with this one?")):
+            variables.FILTER_PATH = filter_file_path
+    except Exception as error:
+        showerror(title="Error Generating Filter File", message="Filter File Could Not Be Generated", detail=error)
+        print(f"{variables.ERROR_CODE}[ERROR]\tCould not detect files : {error}{variables.END_CODE}")
