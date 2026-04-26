@@ -103,9 +103,9 @@ pip install pyinstaller
 - Now open a command window in the `bin` folder of the project
 - Type in the following command
 ```bash
-pyinstaller --name "PCSX2 Texture Randomizer" --clean --specpath "../build" --distpath "../dist" --workpath "../build" --onefile main.py
+pyinstaller --name "PCSX2 Texture Randomizer" --clean --specpath "../build" --distpath "../app" --workpath "../build" --onefile main.py
 ```
-- This should generate a `PCSX2 Texture Randomizer` file in the `dist` folder in root of the project
+- This should generate a `PCSX2 Texture Randomizer` file in the `app` folder in root of the project
 
 # About
 This script was made by `real-xp`, better know as `XP`, along with big help from `Azullia`. If you find any flaw or bugs, please tell me in the comment feature of gists.
