@@ -1,10 +1,6 @@
 name: Build Binary
 
 on:
-  push:
-    branches: ["development"]
-    tags:
-      - "v*"
   workflow_dispatch:
 
 jobs:
