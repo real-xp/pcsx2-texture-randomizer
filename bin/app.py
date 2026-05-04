@@ -24,12 +24,14 @@ def reset_variables():
         core.file_list = []
         variables.IMG_DUPE_ARRAY = []
         img_dupe_input['values'] = variables.IMG_DUPE_ARRAY
+        core.file_list = []
+        core.extension_file_dict = {}
     except Exception as error:
         print(f"{variables.ERROR_CODE}[ERROR]\t Could not reset variables : {error}{variables.END_CODE}")
 
 # opens my github tutorial readme.md
 def open_github_button_action():
-    webbrowser.open("https://gist.github.com/real-xp/e9f5b9bb9f416043a9f7dc6e9ab3a7f6#file-readme-md")
+    webbrowser.open(variables.GITHUB_TUTORIAL_LINK)
 
 # dialog box action for folders
 def dialog_box_button_action(action : str, type_of_action : str):

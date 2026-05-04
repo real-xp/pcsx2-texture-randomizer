@@ -8,3 +8,4 @@ build
 dist
 main.py.bkp
 .DS_Store
+tempfiles

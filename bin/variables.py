@@ -26,6 +26,7 @@ SEED_SAVE = False                                           # set True or False 
 IMG_DUPE_ARRAY = []                                         # This is the array for img dupe paths, key = img_path, value = dict of values
 ING_DUPE_BOOL = False                                       # This is the bool for img dupe, checks if we want to dupe images or not
 HARD_LINK_LIMIT = 1000                                      # Limit for hard links per file
+GITHUB_TUTORIAL_LINK = "https://github.com/real-xp/pcsx2-texture-randomizer/blob/main/README.md"    # Where the tutorial file is
 
 # variables for tkinter styling
 DEFAULT_FONT = ("Helvetica", 12)
