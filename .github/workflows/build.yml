@@ -3,6 +3,8 @@ name: Build Binary
 on:
   push:
     branches: ["development"]
+    tags:
+      - "v*"
   workflow_dispatch:
 
 jobs:
@@ -31,20 +33,28 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          pyinstaller --name "PCSX2 Texture Randomizer" --clean --specpath "./build" --distpath "./app" --workpath "./build" --onefile bin/main.py
+          pyinstaller --name "PCSX2 Texture Randomizer" --clean --specpath "./build" --distpath "./dist" --workpath "./build" --onefile bin/main.py
 
-      - name: Upload artifact (Linux)
-        if: runner.os != 'Windows'
+      - name: Rename binary for platform
+        shell: bash
+        run: |
+          cd dist
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            mv "PCSX2 Texture Randomizer.exe" "PCSX2-Texture-Randomizer-windows.exe"
+          else
+            mv "PCSX2 Texture Randomizer" "PCSX2-Texture-Randomizer-linux"
+          fi
+
+      - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: pcsx2-texture-randomizer-${{ matrix.os }}
-          path: dist/pcsx2-texture-randomizer
+          name: PCSX2-Texture-Randomizer-${{ matrix.os }}
+          path: dist/PCSX2-Texture-Randomizer-*
           retention-days: 1
 
-      - name: Upload artifact (Windows)
-        if: runner.os == 'Windows'
-        uses: actions/upload-artifact@v4
+      - name: Upload to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
         with:
-          name: pcsx2-texture-randomizer-${{ matrix.os }}
-          path: dist/pcsx2-texture-randomizer.exe
-          retention-days: 1
+          files: dist/PCSX2-Texture-Randomizer-*
+          generate_release_notes: true
