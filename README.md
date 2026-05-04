@@ -14,7 +14,7 @@ Initially the program was a single file script and was made just for the purpose
 
 # Usage
 To use this script, follow the steps
-- Download the repository using the `Download` button
+- Download the `.exe` file (windows) or the binary for linux from the `Releases` tab of GitHub
 - Download the textures you want to randomize
     - Make sure the textures you want to randomize are in a separate folder and NOT in your `replacements` folder
 - Open the `main.py` using Python (It should be in the `bin` folder)
