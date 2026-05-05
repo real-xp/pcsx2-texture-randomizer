@@ -120,13 +120,11 @@ def set_hard_links():
 
     temp_file = ""
     user_want_to_continue = False
-    change_temp_file = True
 
     # makes image pool with path : number of links
     image_link_map = {}
     for element in variables.IMG_DUPE_ARRAY:
         image_link_map.update({element: {
-            "dupes": [],
             "current_hard_link": 1,
             "current_dupe_file_index": 0
         }})
@@ -155,29 +153,24 @@ def set_hard_links():
             for index, file_name in enumerate(value_list):          # goes through shuffled list
                 try:
                     # choose a random file from the map
-                    img_dupe_current_path, hard_link_current_limit = random.choice(list(image_link_map.items()))
+                    img_dupe_current_path, img_dupe_map_data = random.choice(list(image_link_map.items()))
 
-                    if (hard_link_current_limit['current_hard_link'] == variables.HARD_LINK_LIMIT):
+                    if (img_dupe_map_data['current_hard_link'] == variables.HARD_LINK_LIMIT):
                         # make a temp file
                         try:
                             if (os.path.exists(variables.TEMP_DIR_PATH)):
                                 file_temp_name = img_dupe_current_path.rsplit('/', 1)[1]
-                                temp_file = shutil.copy(img_dupe_current_path, f"{variables.TEMP_DIR_PATH}/{hard_link_current_limit['current_dupe_file_index']}_{file_temp_name}")
-                                hard_link_current_limit['dupes'].append(temp_file)
+                                temp_file = shutil.copy(img_dupe_current_path, f"{variables.TEMP_DIR_PATH}/{img_dupe_map_data['current_dupe_file_index']}_{file_temp_name}")
 
-                                image_link_map.update({img_dupe_current_path: {
-                                    "dupes": hard_link_current_limit['dupes'],
+                                image_link_map.update({temp_file: {
                                     "current_hard_link": 1,
-                                    "current_dupe_file_index": hard_link_current_limit['current_dupe_file_index'] + 1
+                                    "current_dupe_file_index": img_dupe_map_data['current_dupe_file_index'] + 1
                                 }})
-                                change_temp_file = False
+                                image_link_map.pop(img_dupe_current_path)
                         except IOError as error:
                             print(f"{variables.ERROR_CODE}[ERROR]\tCould not find temproary folder : {error}{variables.END_CODE}")
                     else:
-                        if (change_temp_file):
-                            temp_file = img_dupe_current_path
-                        else:
-                            temp_file = temp_file
+                        temp_file = img_dupe_current_path
 
                     extension_img_dupe_file = temp_file.rsplit('.', 1)[1]
                 
@@ -204,7 +197,7 @@ def set_hard_links():
                     except Exception as error:
                         print(f"{variables.WARNING_CODE}[WARNING]\tLogging issue occured : {error}{variables.END_CODE}")
                     
-                    hard_link_current_limit['current_hard_link'] += 1
+                    img_dupe_map_data['current_hard_link'] += 1
                 except Exception as error:
                     showerror(title="Error Replacing", message="Files could not be replaced")
                     print(f"{variables.ERROR_CODE}[ERROR]\tCould not perform task : {error}{variables.END_CODE}")
