@@ -15,14 +15,15 @@ Initially the program was a single file script and was made just for the purpose
 # Usage
 To use this script, follow the steps
 - Download the `.exe` file (windows) or the binary for linux from the `Releases` tab of GitHub
+    - Alternatively, you can just download the source code, and run the `main.py` file instead of downloading the binary
 - Download the textures you want to randomize
     - Make sure the textures you want to randomize are in a separate folder and NOT in your `replacements` folder
-- Open the `main.py` using Python (It should be in the `bin` folder)
-- It should bring out a GUI interface
+- Run the file you downloaded
 - In `Source Path` field, press `Choose` and select the directory where your textures are located
 - In `Target Path` field, press `Choose` and select the directory where you want to rename and move the textures to
 - Set a seed in the `Seed` field, or choose a random seed by pressing `Random` button
 - If you want to use the Image Duper function, click on `Choose` under `Image Dupe` and select the images you want to be duped and be replaced as textures for the game, also check the `Use` Checkbox
+- You can download a filter file or use your own, by going in `Settings > Filter > Choose`
 - After you have set everything up, Click on the `Randomize Textures` or `Duplicate Textures` button, depending on which mode you are in
 - It should hopefully start processing everything, and should be successful in its task
 - You can enable `Texture Replacement` in PCSX2, and `Load Textures` to load these randomized textures
