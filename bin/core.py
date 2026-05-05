@@ -28,7 +28,7 @@ def get_file_list(files : list):
     filter_file_list = []
 
     try:
-        with open("./filter.txt", 'r') as filter_file:             
+        with open(variables.FILTER_PATH, 'r') as filter_file:             
             for line in filter_file:                                            # parses lines from filter.txt to the array
                 line.strip()                                                    # removes newline character
                 if (line.find(".") != -1):
@@ -118,8 +118,9 @@ def rename_spec_ext():
 # sets hard links from original image
 def set_hard_links():
 
-    temp_file_path = "./tempfiles"
+    temp_file = ""
     user_want_to_continue = False
+    change_temp_file = True
 
     # makes image pool with path : number of links
     image_link_map = {}
@@ -135,6 +136,12 @@ def set_hard_links():
     if (not extension_file_dict):
         showerror(title="Files Not Detected", message="Files could not be detected", detail="Make sure the source path is correct.")
     else:
+
+        if (not os.path.exists(variables.TEMP_DIR_PATH)):
+            try:
+                os.mkdir(variables.TEMP_DIR_PATH)
+            except IOError as error:
+                print(f"{variables.ERROR_CODE}[ERROR]\tCould not make temproary folder : {error}{variables.END_CODE}")
 
     # what it should do is
     # choose a random file
@@ -153,9 +160,9 @@ def set_hard_links():
                     if (hard_link_current_limit['current_hard_link'] == variables.HARD_LINK_LIMIT):
                         # make a temp file
                         try:
-                            if (os.path.exists(temp_file_path)):
+                            if (os.path.exists(variables.TEMP_DIR_PATH)):
                                 file_temp_name = img_dupe_current_path.rsplit('/', 1)[1]
-                                temp_file = shutil.copy(img_dupe_current_path, f"{temp_file_path}/{hard_link_current_limit['current_dupe_file_index']}_{file_temp_name}")
+                                temp_file = shutil.copy(img_dupe_current_path, f"{variables.TEMP_DIR_PATH}/{hard_link_current_limit['current_dupe_file_index']}_{file_temp_name}")
                                 hard_link_current_limit['dupes'].append(temp_file)
 
                                 image_link_map.update({img_dupe_current_path: {
@@ -163,15 +170,14 @@ def set_hard_links():
                                     "current_hard_link": 1,
                                     "current_dupe_file_index": hard_link_current_limit['current_dupe_file_index'] + 1
                                 }})
-                            else:
-                                try:
-                                    os.mkdir(temp_file_path)
-                                except IOError as error:
-                                    print(f"{variables.ERROR_CODE}[ERROR]\tCould not make temproary folder : {error}{variables.END_CODE}")
+                                change_temp_file = False
                         except IOError as error:
-                            print(f"{variables.ERROR_CODE}[ERROR]\tCould not make temproary folder : {error}{variables.END_CODE}")
+                            print(f"{variables.ERROR_CODE}[ERROR]\tCould not find temproary folder : {error}{variables.END_CODE}")
                     else:
-                        temp_file = img_dupe_current_path
+                        if (change_temp_file):
+                            temp_file = img_dupe_current_path
+                        else:
+                            temp_file = temp_file
 
                     extension_img_dupe_file = temp_file.rsplit('.', 1)[1]
                 
@@ -205,7 +211,7 @@ def set_hard_links():
 
             # all things done
             try:
-                os.remove(temp_file_path)
+                shutil.rmtree(variables.TEMP_DIR_PATH)
             except Exception as error:
                 print(f"{variables.ERROR_CODE}[ERROR]\tCould not delete temp folder : {error}{variables.END_CODE}")
 
