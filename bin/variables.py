@@ -7,10 +7,11 @@ import datetime
 # HARD CODED PATHS
 SOURCE_PATH = "./textures/"                                 # This is the path for source textures
 FINAL_PATH = "./replacements/"                              # this is the path where all textures will be moved
-FILTER_PATH = "./filter.txt"                                # This is the path for filter
+FILTER_PATH = "./filter.txt"                                # This is the path for filter, default path
 CONFIG_PATH = "./config.json"                               # This is the path for where config.json file is stored
 SEED_SAVE_PATH = "./seeds.txt"                              # This is the path for where seeds.txt file is stored
 LOG_PATH = "./log.log"                                      # This is the path for where log.log file is stored
+TEMP_DIR_PATH = "./tempfiles"                               # This is the path for where temp files are stored
 
 # PRINT ASCII COLOR CODES
 WARNING_CODE = '\033[93m'                                   # Yellow for warning printing
